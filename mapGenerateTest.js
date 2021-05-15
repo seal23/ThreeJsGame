@@ -66,8 +66,8 @@ const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
 
 const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
-
-renderMap(cameraWidth * 4, cameraHeight * 4);
+let map = [];
+renderMap(cameraWidth, cameraHeight);
 
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
@@ -82,7 +82,7 @@ let playerAngleMoved;
 let score;
 const scoreElement = document.getElementById("score");
 let otherVehicles = [];
-let map = [];
+
 let lastTimestamp;
 let accelerate = false;
 let decelerate = false;
@@ -744,13 +744,13 @@ function getLeftIsland() {
 	return islandMiddle;
   }
   
-  function getRightIsland() {
+   function getRightIsland() {
 	const islandRight = new THREE.Shape();
   
 	islandRight.absarc(
 	  arcCenterX,
 	  0,
-	  innerTrackRadius,
+	  innerTrackRfunctionadius,
 	  Math.PI - arcAngle1,
 	  Math.PI + arcAngle1,
 	  true
@@ -767,6 +767,7 @@ function getLeftIsland() {
   
 	return islandRight;
   }
+
 
   function getOuterField(mapWidth, mapHeight) {
 	const field = new THREE.Shape();
@@ -796,9 +797,21 @@ function getLeftIsland() {
 function renderMap(mapWidth, mapHeight) 
 {
 
-	const mesh = Mesh1();
+	//const mesh = Mesh1(0,0);
 	
-	scene.add(mesh);
+	//scene.add(mesh);
+    const minimumRange = 1;
+    const maximumRange = 100;
+ 
+    addRandomMap(0, 0, minimumRange, maximumRange);
+    addRandomMap(0, 1000, minimumRange, maximumRange);
+    addRandomMap(0, -1000, minimumRange, maximumRange);
+    addRandomMap(1000, 0, minimumRange, maximumRange);
+    addRandomMap(-1000, 0, minimumRange, maximumRange);
+    addMap(1000, 1000, minimumRange, maximumRange);
+    addMap(-1000, 1000, minimumRange, maximumRange);
+    addMap(1000, -1000, minimumRange, maximumRange);
+    addMap(-1000, -1000, minimumRange, maximumRange);
 	
   
 	// Extruded geometry with curbs
@@ -821,6 +834,30 @@ function renderMap(mapWidth, mapHeight)
 	scene.add(fieldMesh);
 	*/
 }  
+
+function addRandomMap(centerX, centerY, minimumRange, maximumRange)
+{
+    let iX, iY;
+    iX = randomR(minimumRange, maximumRange);
+    iY = randomR(minimumRange, maximumRange);
+    iX = randomNegative(iX);
+    iY = randomNegative(iY);
+    addMap(centerX, centerY, iX, iY);
+}
+
+function randomR(min, max)
+{
+    return min*Math.random() * (max - min);
+}
+
+function randomNegative(x)
+{
+    if (Math.random()>0.5)
+    {
+        return -x;
+    }
+    return x;
+}
 /*
 function movePlayerCar(timeDelta)
 {
@@ -847,10 +884,10 @@ function movePlayerCar(timeDelta)
 }
 */
 
-function Mesh1() 
+function Mesh0(centerX, centerY, iX, iY)
 {
-	const mesh = new THREE.Group();
-    const seaMarkingsTexture = getSeaMarkings(500, 500);
+    const mesh = new THREE.Group();
+    const seaMarkingsTexture = getSeaMarkings(1000, 1000);
 	const planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000);
 	const planeMaterial = new THREE.MeshLambertMaterial({
         map: seaMarkingsTexture,
@@ -858,7 +895,82 @@ function Mesh1()
 	
     const plane = new THREE.Mesh(planeGeometry, planeMaterial);
     mesh.add(plane);
+    
+    mesh.position.x = centerX;
+    mesh.position.y = centerY;
+    return mesh;
+}
+
+function Mesh1(centerX, centerY, iX, iY) 
+{
+	const mesh = new THREE.Group();
+    const seaMarkingsTexture = getSeaMarkings(1000, 1000);
+	const planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000);
+	const planeMaterial = new THREE.MeshLambertMaterial({
+        map: seaMarkingsTexture,
+    });
+	
+    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    mesh.add(plane);
+
+    const isLand1 = getIsLand1(iX, iY);
+    const isLandGeometry = new THREE.ExtrudeBufferGeometry(
+		[isLand1],
+		{depth: 4, bevelEnable: false}
+
+	);
+    const isLandMesh = new THREE.Mesh(isLandGeometry, [
+		new THREE.MeshLambertMaterial({ color: 0x67c240}),
+		new THREE.MeshLambertMaterial({ color: 0x23311c})
+	]);
+	mesh.add(isLandMesh);
+
+    mesh.position.x = centerX;
+    mesh.position.y = centerY;
 	return mesh;
 }
 
+function getIsLand1(centerX, centerY) {
+	const islandLeft = new THREE.Shape();
+  
+	islandLeft.absarc(
+	  centerX-arcCenterX,
+	  centerY,
+	  innerTrackRadius,
+	  arcAngle1,
+	  -arcAngle1,
+	  true
+	);
+  
+	islandLeft.absarc(
+	  centerX+arcCenterX,
+	  centerY,
+	  outerTrackRadius,
+	  Math.PI + arcAngle2,
+	  Math.PI - arcAngle2,
+	  true
+	);
+	
+  
+	return islandLeft;
+  }
 
+
+function addMap(centerX, centerY, iX, iY)
+{
+    let mesh;
+	const meshTypes = ["mesh0", "mesh1"];
+	const type = pickRandom(meshTypes);
+    if (type == "mesh0")
+    {
+        mesh = Mesh0(centerX, centerY, iX, iY);
+    }
+	else if (type == "mesh1")
+    {
+        mesh = Mesh1(centerX, centerY, iX, iY);
+    }
+  
+	scene.add(mesh);
+	map.push({mesh, type});
+
+}
