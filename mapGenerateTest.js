@@ -438,56 +438,124 @@ function render()
 }
 function Car() 
 {
-	const car = new THREE.Group();
+	const ship = new THREE.Group();
+    const main = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(80, 30, 15),
+        new THREE.MeshLambertMaterial({color: 0xa52523})
+    );
+    main.position.z = 12;
+    ship.add(main);
 
-	const backWheel = Wheel();
+    const cabin = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(33, 24, 12),
+        new THREE.MeshLambertMaterial({color: 0xffffff})
+    );
+    cabin.position.x = -10;
+    cabin.position.z = 25.5;
+    ship.add(cabin);
+
+    const geometry = new THREE.CylinderGeometry( 5, 5, 10, 25 );
+    const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    const cylinder = new THREE.Mesh( geometry, material );
+    cylinder.rotateX(Math.PI / 2);
+    cylinder.position.x = -10
+    cylinder.position.z = 35;
+    ship.add( cylinder );
+    var width = 27.5;
+    var posx = 2;
+    for (let i = 0; i< 11; i++)
+    {
+        const layer = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(80, width, 15),
+            new THREE.MeshLambertMaterial({color: 0xa52523})
+        );
+        layer.position.z = 12;
+        layer.position.x = posx;
+        ship.add(layer);
+        width -= 2.5;
+        posx += 2;
+    }
+
+    const besung = new THREE.Mesh(
+        new THREE.CylinderGeometry( 1.5, 3, 5, 4 ),
+        new THREE.MeshBasicMaterial( {color: 0xffffff})
+    );
+    besung.rotateZ(Math.PI / 2);
+    besung.rotateY(Math.PI / 2);
+    besung.position.x = 30;
+    besung.position.z = 21;
+    ship.add(besung);
+
+    const geometry2 = new THREE.CylinderGeometry( 1.5, 2, 15, 25 );
+    const material2 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    const gun1 = new THREE.Mesh(geometry2, material2);
+    gun1.rotateZ(-Math.PI / 2);
+    gun1.rotateX(15*Math.PI/ 180);
+    gun1.position.x = 34.25;
+    gun1.position.z = 26.25;
+    gun1.position.y = -2;
+    ship.add(gun1);
+
+    const geometry3 = new THREE.CylinderGeometry( 1.5, 2, 15, 25 );
+    const material3 = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    const gun2 = new THREE.Mesh(geometry3, material3);
+    gun2.rotateZ(-Math.PI / 2);
+    gun2.rotateX(15*Math.PI/ 180);
+    gun2.position.x = 34.25;
+    gun2.position.z = 26.25;
+    gun2.position.y = 2;
+    ship.add(gun2);
+    return ship;
+	// const car = new THREE.Group();
+
+	// const backWheel = Wheel();
 	
-	backWheel.position.x = -18;
-	car.add(backWheel);
+	// backWheel.position.x = -18;
+	// car.add(backWheel);
 	
-	const frontWheel = Wheel();
+	// const frontWheel = Wheel();
 	
-	frontWheel.position.x = 18;
-	car.add(frontWheel);
+	// frontWheel.position.x = 18;
+	// car.add(frontWheel);
 	
-	const main = new THREE.Mesh(
-		new THREE.BoxBufferGeometry(60, 30, 15),
-		new THREE.MeshLambertMaterial({color: pickRandom(vehicleColors) })
-	);
+	// const main = new THREE.Mesh(
+	// 	new THREE.BoxBufferGeometry(60, 30, 15),
+	// 	new THREE.MeshLambertMaterial({color: pickRandom(vehicleColors) })
+	// );
 	
-	main.position.z = 12;
-	car.add(main);
+	// main.position.z = 12;
+	// car.add(main);
 	
-	const carFrontTexture = getCarFrontTexture();
-	carFrontTexture.center = new THREE.Vector2(0.5, 0.5);
-	carFrontTexture.rotation = Math.PI / 2;
+	// const carFrontTexture = getCarFrontTexture();
+	// carFrontTexture.center = new THREE.Vector2(0.5, 0.5);
+	// carFrontTexture.rotation = Math.PI / 2;
 
 
-	const carBackTexture = getCarFrontTexture();
-	carBackTexture.center = new THREE.Vector2(0.5, 0.5);
-	carBackTexture.rotation = -Math.PI /2 ;	
+	// const carBackTexture = getCarFrontTexture();
+	// carBackTexture.center = new THREE.Vector2(0.5, 0.5);
+	// carBackTexture.rotation = -Math.PI /2 ;	
 
 
-	const carRightSideTexture = getCarSideTexture();
+	// const carRightSideTexture = getCarSideTexture();
 
-	const carLeftSideTexture = getCarSideTexture();
-	carLeftSideTexture.flipY = false;
+	// const carLeftSideTexture = getCarSideTexture();
+	// carLeftSideTexture.flipY = false;
 
 
-	const cabin = new THREE.Mesh(
-		new THREE.BoxBufferGeometry(33, 24, 12), [
-			new THREE.MeshLambertMaterial({ map: carFrontTexture}), // x
-			new THREE.MeshLambertMaterial({map: carBackTexture}), // -x
-			new THREE.MeshLambertMaterial({map: carLeftSideTexture}), // y
-			new THREE.MeshLambertMaterial({map: carRightSideTexture}), // -y
-			new THREE.MeshLambertMaterial({color: 0xffffff}), // top +z
-			new THREE.MeshLambertMaterial({color: 0xffffff}) // bottom -z
-		]);
-	cabin.position.z = 25.5;
-	cabin.position.x = -6;
-	car.add(cabin);
+	// const cabin = new THREE.Mesh(
+	// 	new THREE.BoxBufferGeometry(33, 24, 12), [
+	// 		new THREE.MeshLambertMaterial({ map: carFrontTexture}), // x
+	// 		new THREE.MeshLambertMaterial({map: carBackTexture}), // -x
+	// 		new THREE.MeshLambertMaterial({map: carLeftSideTexture}), // y
+	// 		new THREE.MeshLambertMaterial({map: carRightSideTexture}), // -y
+	// 		new THREE.MeshLambertMaterial({color: 0xffffff}), // top +z
+	// 		new THREE.MeshLambertMaterial({color: 0xffffff}) // bottom -z
+	// 	]);
+	// cabin.position.z = 25.5;
+	// cabin.position.x = -6;
+	// car.add(cabin);
 
-	return car;
+	//return car;
 }
 
 function Wheel() {
