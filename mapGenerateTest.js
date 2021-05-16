@@ -1,5 +1,20 @@
 import * as THREE from './node_modules/three/build/three.module.js';
 
+class Collision 
+{
+	
+	constructor(x,y,w,h,r,type = 0){
+		this.X = x;
+		this.Y = y;
+		this.W = w;
+		this.H = h;
+		this.R = r;
+		this.Type = type; // 0: Circle, 1: Rectangle
+	}
+
+
+}
+
 const scene = new THREE.Scene();
 const vehicleColors = [0xa52523, 0xbdb638, 0x78b14b];
 
@@ -13,9 +28,6 @@ const camera = new THREE.PerspectiveCamera(
 	1000 // far plane
 );
 */
-
-
-
 
 const aspectRatio = window.innerWidth/ window.innerHeight;
 const cameraWidth = 860;
@@ -36,11 +48,16 @@ camera.position.set(0, -210, 300);
 camera.lookAt(0, 0, 0);
 
 
-const playerCar = Car();
+const playerShip = Car();
 const playerAngleInitial = Math.PI;
 const speed = 0.035;
+//const speed = 0.1; // increase speed for testing
+const playerRadius = 10; // used for collision
+let isCollision = false;
+let currentCollision; // player collider with
+let collisionRadius = 0; // conllision radius
 
-scene.add(playerCar);
+scene.add(playerShip);
 
 //Set up Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -159,13 +176,13 @@ function turnProcess()
 {
     if (turnLeft)
     {
-        playerCar.rotation.z += 0.01;
+        playerShip.rotation.z += 0.01;
         angle -= 0.01;
     }
     else 
     if (turnRight)
     {
-        playerCar.rotation.z -= 0.01;
+        playerShip.rotation.z -= 0.01;
         angle += 0.01;
     }
 }
@@ -173,14 +190,22 @@ function turnProcess()
 function runProcess(runSpeed)
 {
     
-
-    playerCar.position.x += runSpeed* Math.cos(-angle);
-    playerCar.position.y += runSpeed* Math.sin(-angle);
+	const nextPosisionX = playerShip.position.x + runSpeed*Math.cos(-angle);
+	const nextPosisionY = playerShip.position.y + runSpeed*Math.sin(-angle);
+	if (isCollision)
+		if (Distance(nextPosisionX,nextPosisionY,currentCollision.X,currentCollision.Y)< collisionRadius)
+		{
+		
+			return;
+		}
+	
+    playerShip.position.x += runSpeed* Math.cos(-angle);
+    playerShip.position.y += runSpeed* Math.sin(-angle);
 
    
 }
 
-function movePlayerCar(timeDelta)
+function moveplayerShip(timeDelta)
 {
 	const playerSpeed = getPlayerSpeed();
 	playerAngleMoved -= playerSpeed * timeDelta;
@@ -193,7 +218,7 @@ function movePlayerCar(timeDelta)
 function reset()
 {
 	playerAngleMoved = 0;
-	movePlayerCar(0);
+	moveplayerShip(0);
 	score = 0;
 	scoreElement.innerText = score;
 	lastTimestamp = undefined;
@@ -220,6 +245,7 @@ function startGame()
 /// ANIMATION LOOP
 function animation(timestamp) 
 {
+	
 	if (!lastTimestamp)
 	{
 		lastTimestamp = timestamp;
@@ -227,10 +253,12 @@ function animation(timestamp)
 	}
 	const timeDelta = timestamp - lastTimestamp;
 
-	movePlayerCar(timeDelta);
+	moveplayerShip(timeDelta);
 
-	camera.position.x = playerCar.position.x;
-	camera.position.y = playerCar.position.y - 210;
+	camera.position.x = playerShip.position.x;
+	camera.position.y = playerShip.position.y - 210;
+
+	playerColliderCheck();
 
 /*	const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI *2));
 
@@ -264,14 +292,14 @@ function getHitZonePosition(center, angle, clockwise, distance) {
   
   function hitDetection() {
 	const playerHitZone1 = getHitZonePosition(
-	  playerCar.position,
+	  playerShip.position,
 	  playerAngleInitial + playerAngleMoved,
 	  true,
 	  15
 	);
   
 	const playerHitZone2 = getHitZonePosition(
-	  playerCar.position,
+	  playerShip.position,
 	  playerAngleInitial + playerAngleMoved,
 	  true,
 	  -15
@@ -279,11 +307,11 @@ function getHitZonePosition(center, angle, clockwise, distance) {
   
 	/*
 	if (config.showHitZones) {
-	  playerCar.userData.hitZone1.position.x = playerHitZone1.x;
-	  playerCar.userData.hitZone1.position.y = playerHitZone1.y;
+	  playerShip.userData.hitZone1.position.x = playerHitZone1.x;
+	  playerShip.userData.hitZone1.position.y = playerHitZone1.y;
   
-	  playerCar.userData.hitZone2.position.x = playerHitZone2.x;
-	  playerCar.userData.hitZone2.position.y = playerHitZone2.y;
+	  playerShip.userData.hitZone2.position.x = playerHitZone2.x;
+	  playerShip.userData.hitZone2.position.y = playerHitZone2.y;
 	}
 	*/
   
@@ -871,15 +899,15 @@ function renderMap(mapWidth, mapHeight)
     const minimumRange = 1;
     const maximumRange = 100;
  
-    addRandomMap(0, 0, minimumRange, maximumRange);
+    addRandomMap(0, 0, minimumRange, maximumRange, 0);
     addRandomMap(0, 1000, minimumRange, maximumRange);
     addRandomMap(0, -1000, minimumRange, maximumRange);
     addRandomMap(1000, 0, minimumRange, maximumRange);
     addRandomMap(-1000, 0, minimumRange, maximumRange);
-    addMap(1000, 1000, minimumRange, maximumRange);
-    addMap(-1000, 1000, minimumRange, maximumRange);
-    addMap(1000, -1000, minimumRange, maximumRange);
-    addMap(-1000, -1000, minimumRange, maximumRange);
+    addRandomMap(1000, 1000, minimumRange, maximumRange);
+    addRandomMap(-1000, 1000, minimumRange, maximumRange);
+    addRandomMap(1000, -1000, minimumRange, maximumRange);
+    addRandomMap(-1000, -1000, minimumRange, maximumRange);
 	
   
 	// Extruded geometry with curbs
@@ -903,14 +931,14 @@ function renderMap(mapWidth, mapHeight)
 	*/
 }  
 
-function addRandomMap(centerX, centerY, minimumRange, maximumRange)
+function addRandomMap(centerX, centerY, minimumRange, maximumRange, mType =1)
 {
     let iX, iY;
     iX = randomR(minimumRange, maximumRange);
     iY = randomR(minimumRange, maximumRange);
     iX = randomNegative(iX);
     iY = randomNegative(iY);
-    addMap(centerX, centerY, iX, iY);
+    addMap(centerX, centerY, iX, iY, mType);
 }
 
 function randomR(min, max)
@@ -926,31 +954,7 @@ function randomNegative(x)
     }
     return x;
 }
-/*
-function movePlayerCar(timeDelta)
-{
-    let x0 = playerCar.position.x;
-    let y0 = playerCar.position.y;
 
-	const playerSpeed = getPlayerSpeed();
-    let playerX = x0 + playerSpeed * timeDelta;
-    let playerY = a*playerX + b; 
-	
-    playerAngleMoved -= playerSpeed * timeDelta;
-    playerCar.position.x = playerX;
-	playerCar.position.y = playerY;
-
-	const totalPlayerAngle = playerAngleInitial + playerAngleMoved;
-
-
-	const playerX = Math.cos(totalPlayerAngle) * playerRadius; // trackRadius - arcCenterX;
-	const playerY = Math.sin(totalPlayerAngle) * playerRadius;
-
-
-
-	//playerCar.rotation.z = totalPlayerAngle - Math.PI / 2;
-}
-*/
 
 function Mesh0(centerX, centerY, iX, iY)
 {
@@ -1024,11 +1028,14 @@ function getIsLand1(centerX, centerY) {
   }
 
 
-function addMap(centerX, centerY, iX, iY)
+function addMap(centerX, centerY, iX, iY, mType = 1)
 {
     let mesh;
+	let collider = [];
 	const meshTypes = ["mesh0", "mesh1"];
-	const type = pickRandom(meshTypes);
+	let type = pickRandom(meshTypes);
+	if (mType == 0 )
+		type = "mesh0";
     if (type == "mesh0")
     {
         mesh = Mesh0(centerX, centerY, iX, iY);
@@ -1036,9 +1043,81 @@ function addMap(centerX, centerY, iX, iY)
 	else if (type == "mesh1")
     {
         mesh = Mesh1(centerX, centerY, iX, iY);
+		
+		const c1 = new Collision(centerX + iX -45, centerY+iY, 0, 0, 75);
+
+		const c2 = new Collision(centerX + iX -55, centerY + iY + 100, 0, 0, 53);
+		
+		const c3 = new Collision(centerX + iX - 55, centerY + iY - 100, 0, 0, 53);
+
+		const tC1 = new THREE.Mesh(new THREE.CircleGeometry(75, 32),  
+			new THREE.MeshLambertMaterial({ color: "blue"})
+		);
+		const tC2 = new THREE.Mesh(new THREE.CircleGeometry(53, 32),  
+		new THREE.MeshLambertMaterial({ color: "blue"})
+		);
+		const tC3 = new THREE.Mesh(new THREE.CircleGeometry(53, 32), 
+		new THREE.MeshLambertMaterial({ color: "blue"})
+		);
+
+		tC1.position.x = centerX + iX -45;
+		tC1.position.y = centerY +iY;
+		tC1.position.z = 20;
+
+		tC2.position.x = centerX +iX -55;
+		tC2.position.y = centerY + iY + 100;
+		tC2.position.z = 20;
+
+		tC3.position.x = centerX +iX -55;
+		tC3.position.y = centerY + iY -100;
+		tC3.position.z = 20;
+		scene.add(tC1);
+		scene.add(tC2);
+		scene.add(tC3);
+		collider.push(c1);
+		collider.push(c2);
+		collider.push(c3);
+
+		
     }
   
 	scene.add(mesh);
-	map.push({mesh, type});
+	map.push({mesh, type, collider});
 
 }
+
+function playerColliderCheck()
+{
+	let minCollisionRadius = 1000;
+	let collisionR;
+	let foundCollider = false;
+	map.forEach((tile) => {
+		tile.collider.forEach((collision) => {
+		
+			collisionR = Distance(playerShip.position.x,playerShip.position.y, collision.X, collision.Y);
+			
+			if (collisionR<playerRadius+collision.R)
+			{
+				console.log("CollisionDetect");
+				isCollision = true;
+				collisionRadius = collisionR;
+				currentCollision = collision;
+				foundCollider = true;
+			}
+			else console.log(playerShip.position.x);
+		})
+		
+	})
+	if (!foundCollider)
+	{
+		isCollision = false;
+	}
+}
+
+function Distance(x1, y1, x2, y2)
+{
+	return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
+}
+
+
+
