@@ -498,11 +498,24 @@ function Car()
         );
         main.position.z = mainpos;
         ship.add(main);
+        var mainRostrumheight = mainheight;
+        var mainRostrumx = 3;
+        for (let j = 0; j < 9; j ++){
+            const mainrt = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(mainwidth, mainRostrumheight, 2),
+                new THREE.MeshLambertMaterial({color: 0x8B4513})
+            );
+            mainrt.position.z = mainpos;
+            mainrt.position.x = mainRostrumx;
+            ship.add(mainrt);
+            mainRostrumheight -= 5;
+            mainRostrumx += 3;
+        }
         mainwidth += 8;
         mainheight += 1;
         mainpos += 2;
     }
-    
+
     //front bow
     var fbowposz = 32;
     var fbowposx = 67;
@@ -514,10 +527,47 @@ function Car()
         frontbow.position.z = fbowposz;
         frontbow.position.x = fbowposx;
         ship.add(frontbow);
+        var frontRostrumheight = mainheight;
+        var frontRostrumx = fbowposx + 2;
+        for (let j = 0; j < 9; j++){
+            const rt = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(35, frontRostrumheight, 2),
+                new THREE.MeshLambertMaterial({color: 0x8B4513})
+            );
+            rt.position.z = fbowposz;
+            rt.position.x = frontRostrumx;
+            ship.add(rt);
+            frontRostrumheight -=5;
+            frontRostrumx +=3;
+        }
         fbowposz += 2;
         fbowposx += 4;
         mainheight += 1;
     }
+
+    //rostrum
+    var rostrumsize = 47;
+    var rostrumx = 82;
+    for (let i =0; i < 9; i++){
+        const rostrum = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(35, rostrumsize, 2),
+            new THREE.MeshLambertMaterial({ color: 0x8B4513 })
+        );
+        rostrum.position.z = 38;
+        rostrum.position.x = rostrumx;
+        ship.add(rostrum);
+        rostrumsize -=5;
+        rostrumx += 3;
+    }
+    const mastRostum = new THREE.Mesh(
+        new THREE.CylinderGeometry( 3, 1, 50, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0x8B4513} )
+    );
+    mastRostum.position.x = 125;
+    mastRostum.position.z = 40;
+    mastRostum.rotateZ(Math.PI / 2);
+    mastRostum.rotateX(-Math.PI / 18);
+    ship.add(mastRostum);
 
     //back bow
     var bbowposz = 32;
@@ -535,10 +585,10 @@ function Car()
         mainheight += 1;
     }
     const cubeback = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(35, 30, 18),
+        new THREE.BoxBufferGeometry(20, 30, 18),
         new THREE.MeshLambertMaterial({color: 0x8B4513})
     );
-    cubeback.position.x = -65;
+    cubeback.position.x = -55;
     cubeback.position.z = 30;
     ship.add(cubeback);
 
