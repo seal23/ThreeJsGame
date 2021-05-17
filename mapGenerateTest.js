@@ -52,7 +52,7 @@ const playerShip = Car();
 const playerAngleInitial = Math.PI;
 const speed = 0.035;
 //const speed = 0.1; // increase speed for testing
-const playerRadius = 10; // used for collision
+const playerRadius = 15; // used for collision
 let isCollision = false;
 let currentCollision; // player collider with
 let collisionRadius = 0; // conllision radius
@@ -84,8 +84,26 @@ const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
 const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
 let map = [];
-renderMap(cameraWidth, cameraHeight);
+const tileMapSize = 1000;
+const neighborTilesX = [tileMapSize, tileMapSize, tileMapSize, 0, 0, -tileMapSize, -tileMapSize, -tileMapSize];
+const neighborTilesY = [tileMapSize, 0, -tileMapSize, tileMapSize, -tileMapSize, tileMapSize, 0, -tileMapSize];
+const neighborTilesI = [1, 1, 1, 0, 0, -1, -1, -1];
+const neighborTilesJ = [1, 0, -1, 1, -1, 1, 0, -1];
 
+let generator = new Array(1000);
+
+for (let i = 0; i < generator.length; i++) 
+{
+  generator[i] = new Array(1000);
+  for (let j = 0; j < generator[i].length; j++)
+  {
+	  generator[i][j] = 0;
+  }
+}
+console.log(generator[500][500]);
+
+renderMap(cameraWidth, cameraHeight);
+UpdateMap(tileMapSize);
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize( window.innerWidth, window.innerHeight );
@@ -259,6 +277,7 @@ function animation(timestamp)
 	camera.position.y = playerShip.position.y - 210;
 
 	playerColliderCheck();
+	UpdateMap(tileMapSize);
 
 /*	const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI *2));
 
@@ -1133,15 +1152,25 @@ function renderMap(mapWidth, mapHeight)
     const maximumRange = 100;
  
     addRandomMap(0, 0, minimumRange, maximumRange, 0);
+	generator[500][500] = 1;
+	/*
     addRandomMap(0, 1000, minimumRange, maximumRange);
+	generator[500][501] = 1;
     addRandomMap(0, -1000, minimumRange, maximumRange);
+	generator[500][499] = 1;
     addRandomMap(1000, 0, minimumRange, maximumRange);
+	generator[501][500] = 1;
     addRandomMap(-1000, 0, minimumRange, maximumRange);
+	generator[499][500] = 1;
     addRandomMap(1000, 1000, minimumRange, maximumRange);
+	generator[501, 501] = 1;
     addRandomMap(-1000, 1000, minimumRange, maximumRange);
+	generator[499, 501] = 1;
     addRandomMap(1000, -1000, minimumRange, maximumRange);
+	generator[501, 499] = 1;
     addRandomMap(-1000, -1000, minimumRange, maximumRange);
-	
+	generator[499, 499] = 1;
+	*/
   
 	// Extruded geometry with curbs
 	/*
@@ -1192,8 +1221,8 @@ function randomNegative(x)
 function Mesh0(centerX, centerY, iX, iY)
 {
     const mesh = new THREE.Group();
-    const seaMarkingsTexture = getSeaMarkings(1000, 1000);
-	const planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000);
+    const seaMarkingsTexture = getSeaMarkings(tileMapSize, tileMapSize);
+	const planeGeometry = new THREE.PlaneBufferGeometry(tileMapSize, tileMapSize);
 	const planeMaterial = new THREE.MeshLambertMaterial({
         map: seaMarkingsTexture,
     });
@@ -1209,8 +1238,8 @@ function Mesh0(centerX, centerY, iX, iY)
 function Mesh1(centerX, centerY, iX, iY) 
 {
 	const mesh = new THREE.Group();
-    const seaMarkingsTexture = getSeaMarkings(1000, 1000);
-	const planeGeometry = new THREE.PlaneBufferGeometry(1000, 1000);
+    const seaMarkingsTexture = getSeaMarkings(tileMapSize, tileMapSize);
+	const planeGeometry = new THREE.PlaneBufferGeometry(tileMapSize, tileMapSize);
 	const planeMaterial = new THREE.MeshLambertMaterial({
         map: seaMarkingsTexture,
     });
@@ -1337,7 +1366,10 @@ function playerColliderCheck()
 				currentCollision = collision;
 				foundCollider = true;
 			}
-			else console.log(playerShip.position.x);
+			else 
+			{
+				//console.log(playerShip.position.x);
+			}
 		})
 		
 	})
@@ -1352,5 +1384,74 @@ function Distance(x1, y1, x2, y2)
 	return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
 }
 
+function UpdateMap(size)
+{
+	
+	const minimumRange = 1;
+    const maximumRange = 100;
+	let currentX = playerShip.position.x;
+	let currentY = playerShip.position.y;
+	const halfSize = size/2;
+	if (currentX < 0) 
+		currentX - halfSize;
+	else 
+		currentX + halfSize;
+	
+	if (currentY < 0)
+		currentY - halfSize;
+	else 
+		currentY + halfSize;
+
+	const currentI = Math.floor(currentX/size);
+	const currentJ = Math.floor(currentY/size);
+	const i = currentI+500; // position i in generator array
+	const j = currentJ+500;
+
+	const x = currentI * size;
+	const y = currentJ * size;
+
+	if (i<0 || i>999 || j<0 || j>999) // reset the Map when it too big
+	{
+		
+		for (let i = 0; i < generator.length; i++) 
+		{
+  			generator[i] = new Array(1000);
+  			for (let j = 0; j < generator[i].length; j++)
+  			{
+	  			generator[i][j] = 0;
+  			}
+		}
+		addRandomMap(0, 0, minimumRange, maximumRange, 0);
+		generator[500][500] = 1;
+		playerShip.position.x = 0;
+		playerShip.position.y = 0;
+		return;
+	}
+
+	if (generator[i][j] == 1)
+	{
+		console.log("Came in new tile => x: " +x + " y: " + y);
+	
+		generator[i][j] = 2;
+		for (let k=0; k<neighborTilesI.length; k++)
+		{
+			
+			let di = neighborTilesI[k];
+			let dj = neighborTilesJ[k];
+			let dx = neighborTilesX[k];
+			let dy = neighborTilesY[k];
+
+			if (generator[i+di][j+dj] == 0)
+			{
+				generator[i+di][j+dj] = 1;
+				addRandomMap(x+dx, y+dy, minimumRange, maximumRange);
+
+			}
+			
+		}
+
+	}
+	
+}
 
 
