@@ -572,7 +572,7 @@ function Car()
     //back bow
     var bbowposz = 32;
     var bbowposx = -67;
-    for (let i = 0; i < 4; i++){
+    for (let i = 0; i < 6; i++){
         const backbow = new THREE.Mesh(
             new THREE.BoxBufferGeometry(35, mainheight, 2),
             new THREE.MeshLambertMaterial({color: 0x8B4513})
@@ -585,31 +585,38 @@ function Car()
         mainheight += 1;
     }
     const cubeback = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(20, 30, 18),
+        new THREE.BoxBufferGeometry(25, 30, 20),
         new THREE.MeshLambertMaterial({color: 0x8B4513})
     );
-    cubeback.position.x = -55;
-    cubeback.position.z = 30;
+    cubeback.position.x = -57;
+    cubeback.position.z = 33;
     ship.add(cubeback);
 
     //cabin
     const cabin_1 = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(25, 35, 15),
+        new THREE.BoxBufferGeometry(32, 44, 15),
         new THREE.MeshLambertMaterial({color: 0xA0522D})
     );
-    cabin_1.position.x = -77;
-    cabin_1.position.z = 45;
+    cabin_1.position.x = -86;
+    cabin_1.position.z = 50;
     ship.add(cabin_1);
     const cabin_2 = new THREE.Mesh(
-        new THREE.BoxBufferGeometry(20, 30, 10),
+        new THREE.BoxBufferGeometry(25, 30, 10),
         new THREE.MeshLambertMaterial({color: 0xA0522D})
     );
-    cabin_2.position.x = -77;
-    cabin_2.position.z = 57;
+    cabin_2.position.x = -86;
+    cabin_2.position.z = 62;
     ship.add(cabin_2);
+    const cabin_3 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(20, 25, 10),
+        new THREE.MeshLambertMaterial({color: 0xA0522D})
+    );
+    cabin_3.position.x = -86;
+    cabin_3.position.z = 72;
+    ship.add(cabin_3);
 
 
-    //left railing
+    // //left railing
     const leftRailing = new THREE.Mesh(
         new THREE.BoxBufferGeometry(99, 1, 2.5),
         new THREE.MeshLambertMaterial({color: 0xA9A9A9})
@@ -635,9 +642,9 @@ function Car()
         new THREE.BoxBufferGeometry(34, 1, 2.5),
         new THREE.MeshLambertMaterial({color: 0xA9A9A9})
     );
-    bleftRailing.position.x = -79;
+    bleftRailing.position.x = -88;
     bleftRailing.position.y = -28;
-    bleftRailing.position.z = 40;
+    bleftRailing.position.z = 44;
     ship.add(bleftRailing);
     //mid
     const mbRailing = new THREE.Mesh(
@@ -645,19 +652,49 @@ function Car()
         new THREE.MeshLambertMaterial({color: 0xA9A9A9})
     );
     mbRailing.rotateZ(Math.PI / 2);
-    mbRailing.position.x = -96;
+    mbRailing.position.x = -105;
     mbRailing.position.y = 0;
-    mbRailing.position.z = 40;
+    mbRailing.position.z = 44;
     ship.add(mbRailing);
     //right
     const brightRailing = new THREE.Mesh(
         new THREE.BoxBufferGeometry(34, 1, 2.5),
         new THREE.MeshLambertMaterial({color: 0xA9A9A9})
     );
-    brightRailing.position.x = -79;
+    brightRailing.position.x = -88;
     brightRailing.position.y = 28;
-    brightRailing.position.z = 40;
+    brightRailing.position.z = 44;
     ship.add(brightRailing);
+
+    //back-railing top
+    //top left
+    const bleftRailingtop = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(33, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    bleftRailingtop.position.x = -86;
+    bleftRailingtop.position.y = -23;
+    bleftRailingtop.position.z = 58;
+    ship.add(bleftRailingtop);
+    //top mid
+    const mbRailingtop = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(47, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    mbRailingtop.rotateZ(Math.PI / 2);
+    mbRailingtop.position.x = -102;
+    mbRailingtop.position.y = 0;
+    mbRailingtop.position.z = 58;
+    ship.add(mbRailingtop);
+    // //right
+    const brightRailingtop = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(33, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    brightRailingtop.position.x = -86;
+    brightRailingtop.position.y = 23;
+    brightRailingtop.position.z = 58;
+    ship.add(brightRailingtop);
 
     //mid mast
     const mast = new THREE.CylinderGeometry( 1, 1, 80, 32 );
@@ -690,24 +727,84 @@ function Car()
 
     //front mast
     const frontMast = new THREE.Mesh(
-        new THREE.CylinderGeometry( 1, 1, 55, 32 ),
+        new THREE.CylinderGeometry( 1, 1, 65, 32 ),
         material
     );
     frontMast.rotateX(Math.PI / 2);
-    frontMast.position.z = 56;
+    frontMast.position.z = 62;
     frontMast.position.x = 30;
     ship.add(frontMast);
 
+    //observatory front mast
+    const observatoryFront = new THREE.Mesh(
+        new THREE.CylinderGeometry( 4, 2, 3, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0xB8860B} )
+    );
+    observatoryFront.rotateX(Math.PI / 2);
+    observatoryFront.position.x = 30;
+    observatoryFront.position.z = 85;
+    ship.add(observatoryFront);
+    
+    //flag front
+    const flagFront = new THREE.Mesh(
+        new THREE.PlaneGeometry( 10, 5, 1 ),
+        new THREE.MeshBasicMaterial( { color: 0x000080, side: THREE.DoubleSide} )
+    );
+    flagFront.rotateX(Math.PI / 2);
+    flagFront.position.x = 25;
+    flagFront.position.z = 91;
+    ship.add(flagFront);
+
     //back mast
     const backMast = new THREE.Mesh(
-        new THREE.CylinderGeometry(1, 1, 55, 32),
+        new THREE.CylinderGeometry(1, 1, 65, 32),
         material
     );
     backMast.rotateX(Math.PI / 2);
-    backMast.position.z = 56;
+    backMast.position.z = 62;
     backMast.position.x = -30;
     ship.add(backMast);
+
+    //observatory back mast
+    const observatoryBackmast = new THREE.Mesh(
+        new THREE.CylinderGeometry( 4, 2, 3, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0xB8860B} )
+    );
+    observatoryBackmast.rotateX(Math.PI / 2);
+    observatoryBackmast.position.x = -30;
+    observatoryBackmast.position.z = 85;
+    ship.add(observatoryBackmast);
     
+    //flag back
+    const flagBack = new THREE.Mesh(
+        new THREE.PlaneGeometry( 10, 5, 1 ),
+        new THREE.MeshBasicMaterial( { color: 0x000080, side: THREE.DoubleSide} )
+    );
+    flagBack.rotateX(Math.PI / 2);
+    flagBack.position.x = -35;
+    flagBack.position.z = 91;
+    ship.add(flagBack);
+    
+    //cabin mast
+    const cabinMast = new THREE.Mesh(
+        new THREE.CylinderGeometry(1, 1, 20, 32),
+        material
+    );
+    cabinMast.rotateX(Math.PI / 2);
+    cabinMast.position.z = 78;
+    cabinMast.position.x = -86;
+    ship.add(cabinMast);
+
+    //cabin flag
+    const cabinflag = new THREE.Mesh(
+        new THREE.PlaneGeometry( 10, 5, 1 ),
+        new THREE.MeshBasicMaterial( { color: 0x000080, side: THREE.DoubleSide} )
+    );
+    cabinflag.rotateX(Math.PI / 2);
+    cabinflag.position.x = -90;
+    cabinflag.position.z = 85;
+    ship.add(cabinflag);
+
     //mid sail
     const pointsBig = [];
     for ( let i = 0; i < 10; i ++ ) {
@@ -769,7 +866,7 @@ function Car()
         new THREE.BoxBufferGeometry(5, 7, 3),
         new THREE.MeshLambertMaterial({color: 0xCD853F})
     );
-    pedestal_2.position.x = 17;
+    pedestal_2.position.x = 36;
     pedestal_2.position.y = 20;
     pedestal_2.position.z = 32;
     ship.add(pedestal_2);
@@ -777,7 +874,7 @@ function Car()
         new THREE.CylinderBufferGeometry(2, 2, 15, 32),
         new THREE.MeshBasicMaterial( {color: 0x000000} )
     );
-    cannon_2.position.x = 17;
+    cannon_2.position.x = 36;
     cannon_2.position.y = 23;
     cannon_2.position.z = 34;
     ship.add(cannon_2);
@@ -787,7 +884,7 @@ function Car()
         new THREE.BoxBufferGeometry(5, 7, 3),
         new THREE.MeshLambertMaterial({color: 0xCD853F})
     );
-    pedestal_3.position.x = -15;
+    pedestal_3.position.x = 6;
     pedestal_3.position.y = 20;
     pedestal_3.position.z = 32;
     ship.add(pedestal_3);
@@ -795,7 +892,7 @@ function Car()
         new THREE.CylinderBufferGeometry(2, 2, 15, 32),
         new THREE.MeshBasicMaterial( {color: 0x000000} )
     );
-    cannon_3.position.x = -15;
+    cannon_3.position.x = 6;
     cannon_3.position.y = 23;
     cannon_3.position.z = 34;
     ship.add(cannon_3);
@@ -805,16 +902,16 @@ function Car()
         new THREE.BoxBufferGeometry(5, 7, 3),
         new THREE.MeshLambertMaterial({color: 0xCD853F})
     );
-    pedestal_4.position.x = -15;
-    pedestal_4.position.y = -20;
+    pedestal_4.position.x = -25;
+    pedestal_4.position.y = 20;
     pedestal_4.position.z = 32;
     ship.add(pedestal_4);
     const cannon_4 = new THREE.Mesh(
         new THREE.CylinderBufferGeometry(2, 2, 15, 32),
         new THREE.MeshBasicMaterial( {color: 0x000000} )
     );
-    cannon_4.position.x = -15;
-    cannon_4.position.y = -23;
+    cannon_4.position.x = -25;
+    cannon_4.position.y = 23;
     cannon_4.position.z = 34;
     ship.add(cannon_4);
 
@@ -823,7 +920,7 @@ function Car()
         new THREE.BoxBufferGeometry(5, 7, 3),
         new THREE.MeshLambertMaterial({color: 0xCD853F})
     );
-    pedestal_5.position.x = 17;
+    pedestal_5.position.x = -25;
     pedestal_5.position.y = -20;
     pedestal_5.position.z = 32;
     ship.add(pedestal_5);
@@ -831,10 +928,46 @@ function Car()
         new THREE.CylinderBufferGeometry(2, 2, 15, 32),
         new THREE.MeshBasicMaterial( {color: 0x000000} )
     );
-    cannon_5.position.x = 17;
+    cannon_5.position.x = -25;
     cannon_5.position.y = -23;
     cannon_5.position.z = 34;
     ship.add(cannon_5);
+
+    //cannon 6
+    const pedestal_6 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_6.position.x = 6;
+    pedestal_6.position.y = -20;
+    pedestal_6.position.z = 32;
+    ship.add(pedestal_6);
+    const cannon_6 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_6.position.x = 6;
+    cannon_6.position.y = -23;
+    cannon_6.position.z = 34;
+    ship.add(cannon_6);
+
+    //cannon 7
+    const pedestal_7 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_7.position.x = 36;
+    pedestal_7.position.y = -20;
+    pedestal_7.position.z = 32;
+    ship.add(pedestal_7);
+    const cannon_7 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_7.position.x = 36;
+    cannon_7.position.y = -23;
+    cannon_7.position.z = 34;
+    ship.add(cannon_7);
     return ship;
 	// const car = new THREE.Group();
 
@@ -887,6 +1020,336 @@ function Car()
 
 	//return car;
 }
+
+function Ship_2(){
+    const ship = new THREE.Group();
+
+    //main ship
+    var mainwidth = 70;
+    var mainpos = 6;
+    var mainheight = 35;
+    for (let i = 0; i < 10; i++){
+        const main = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(mainwidth, mainheight, 2),
+            new THREE.MeshLambertMaterial({color: 0x8B4513})
+        );
+        main.position.z = mainpos;
+        ship.add(main);
+        var mainRostrumheight = mainheight;
+        var mainRostrumx = 3;
+        for (let j = 0; j < 9; j ++){
+            const mainrt = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(mainwidth, mainRostrumheight, 2),
+                new THREE.MeshLambertMaterial({color: 0x8B4513})
+            );
+            mainrt.position.z = mainpos;
+            mainrt.position.x = mainRostrumx;
+            ship.add(mainrt);
+            mainRostrumheight -= 4;
+            mainRostrumx += 3;
+        }
+        mainwidth += 8;
+        mainheight += 1;
+        mainpos += 2;
+    }
+
+    //front bow
+    var fbowposz = 26;
+    var fbowposx = 58;
+    for (let i = 0; i < 4; i++){
+        const frontbow = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(35, mainheight, 2),
+            new THREE.MeshLambertMaterial({color: 0x8B4513})
+        );
+        frontbow.position.z = fbowposz;
+        frontbow.position.x = fbowposx;
+        ship.add(frontbow);
+        var frontRostrumheight = mainheight;
+        var frontRostrumx = fbowposx + 2;
+        for (let j = 0; j < 9; j++){
+            const rt = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(35, frontRostrumheight, 2),
+                new THREE.MeshLambertMaterial({color: 0x8B4513})
+            );
+            rt.position.z = fbowposz;
+            rt.position.x = frontRostrumx;
+            ship.add(rt);
+            frontRostrumheight -=5;
+            frontRostrumx +=3;
+        }
+        fbowposz += 2;
+        fbowposx += 4;
+        mainheight += 1;
+    }
+
+    //rostrum
+    const mastRostum = new THREE.Mesh(
+        new THREE.CylinderGeometry( 3, 1, 40, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0x8B4513} )
+    );
+    mastRostum.position.x = 120;
+    mastRostum.position.z = 34;
+    mastRostum.rotateZ(Math.PI / 2);
+    mastRostum.rotateX(-Math.PI / 18);
+    ship.add(mastRostum);
+
+    //back bow
+    var bbowposz = 26;
+    var bbowposx = -50;
+    for (let i = 0; i < 8; i++){
+        const backbow = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(50, mainheight, 2),
+            new THREE.MeshLambertMaterial({color: 0x8B4513})
+        );
+        backbow.position.z = bbowposz;
+        backbow.position.x = bbowposx;
+        ship.add(backbow);
+        bbowposz += 2;
+        bbowposx -= 4;
+        mainheight += 1;
+    }
+    const cubeback_bottom = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(20, 30, 21),
+        new THREE.MeshLambertMaterial({color: 0x8B4513})
+    );
+    cubeback_bottom.position.x = -45;
+    cubeback_bottom.position.z = 30;
+    ship.add(cubeback_bottom);
+    //cabin
+    const cabin_1 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(49, 55, 20),
+        new THREE.MeshLambertMaterial({color: 0x8B4513})
+    );
+    cabin_1.position.x = -78;
+    cabin_1.position.z = 50;
+    ship.add(cabin_1);
+    const cabin_2 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(35, 30, 15),
+        new THREE.MeshLambertMaterial({color: 0x8B4513})
+    );
+    cabin_2.position.x = -78;
+    cabin_2.position.z = 65;
+    ship.add(cabin_2);
+
+    //left railing
+    const leftRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(66, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    leftRailing.position.x = 8;
+    leftRailing.position.y = -22;
+    leftRailing.position.z = 26;
+    ship.add(leftRailing);
+
+    //right railing
+    const rightRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(66, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    rightRailing.position.x = 8;
+    rightRailing.position.y = 22;
+    rightRailing.position.z = 26;
+    ship.add(rightRailing);
+
+    //back-railing
+    //left
+    const bleftRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(49, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    bleftRailing.position.x = -78;
+    bleftRailing.position.y = -27;
+    bleftRailing.position.z = 61;
+    ship.add(bleftRailing);
+    //mid
+    const mbRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(55, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    mbRailing.rotateZ(Math.PI / 2);
+    mbRailing.position.x = -103;
+    mbRailing.position.z = 61;
+    ship.add(mbRailing);
+    //right
+    const brightRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(49, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    brightRailing.position.x = -78;
+    brightRailing.position.y = 27;
+    brightRailing.position.z = 62;
+    ship.add(brightRailing);
+
+    //front mast
+    const mast = new THREE.CylinderGeometry( 1, 1, 70, 32 );
+    const material = new THREE.MeshBasicMaterial( {color: 0xB8860B} );
+    const frontmast = new THREE.Mesh(mast, material);
+    frontmast.rotateX(Math.PI / 2);
+    frontmast.position.z = 60;
+    frontmast.position.x = 25;
+    ship.add(frontmast);
+
+    //observatory
+    const observatoryFrontmast = new THREE.Mesh(
+        new THREE.CylinderGeometry( 4, 2, 3, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0xB8860B} )
+    );
+    observatoryFrontmast.rotateX(Math.PI / 2);
+    observatoryFrontmast.position.x = 25;
+    observatoryFrontmast.position.z = 84;
+    ship.add(observatoryFrontmast);
+    
+    //flag
+    const flagFront = new THREE.Mesh(
+        new THREE.PlaneGeometry( 10, 5, 1 ),
+        new THREE.MeshBasicMaterial( { color: 0x000080, side: THREE.DoubleSide} )
+    );
+    flagFront.rotateX(Math.PI / 2);
+    flagFront.position.x = 20;
+    flagFront.position.z = 92;
+    ship.add(flagFront);
+
+    //frontsail
+    const pointsBig = [];
+    for ( let i = 0; i < 10; i ++ ) {
+        pointsBig.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 16 + 5, ( i - 5 ) * 5 ) );
+    }
+    const frontSail = new THREE.Mesh( 
+        new THREE.LatheGeometry( pointsBig, 14, 0.5, 2.2),
+        new THREE.MeshBasicMaterial( {color: 0xC0C0C0} )
+    );
+    frontSail.rotateX(-Math.PI / 2);
+    frontSail.position.x = 20;
+    frontSail.position.z = 55;
+    ship.add(frontSail)
+
+    //back mast
+    const backmast = new THREE.Mesh(mast, material);
+    backmast.rotateX(Math.PI / 2);
+    backmast.position.z = 60;
+    backmast.position.x = -15;
+    ship.add(backmast);
+
+    //observatory
+    const observatoryBackmast = new THREE.Mesh(
+        new THREE.CylinderGeometry( 4, 2, 3, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0xB8860B} )
+    );
+    observatoryBackmast.rotateX(Math.PI / 2);
+    observatoryBackmast.position.x = -15;
+    observatoryBackmast.position.z = 84;
+    ship.add(observatoryBackmast);
+    
+    //flag
+    const flagBack = new THREE.Mesh(
+        new THREE.PlaneGeometry( 10, 5, 1 ),
+        new THREE.MeshBasicMaterial( { color: 0x000080, side: THREE.DoubleSide} )
+    );
+    flagBack.rotateX(Math.PI / 2);
+    flagBack.position.x = -20;
+    flagBack.position.z = 92;
+    ship.add(flagBack);
+
+    //back sail
+    const backSail = new THREE.Mesh( 
+        new THREE.LatheGeometry( pointsBig, 14, 0.5, 2.2),
+        new THREE.MeshBasicMaterial( {color: 0xC0C0C0} )
+    );
+    backSail.rotateX(-Math.PI / 2);
+    backSail.position.x = -20;
+    backSail.position.z = 55;
+    ship.add(backSail)
+
+    //cannon 1
+    const pedestal_1 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(7, 5, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_1.position.x = 76;
+    pedestal_1.position.z = 34;
+    ship.add(pedestal_1);
+    const cannon_1 = new THREE.Mesh(
+        new THREE.CylinderGeometry( 1.5, 1.5, 15, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_1.rotateZ(Math.PI / 2);
+    cannon_1.position.x = 80;
+    cannon_1.position.z = 37;
+    ship.add(cannon_1);
+
+    //cannon 2
+    const pedestal_2 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_2.position.x = 25;
+    pedestal_2.position.y = 18;
+    pedestal_2.position.z = 27;
+    ship.add(pedestal_2);
+    const cannon_2 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_2.position.x = 25;
+    cannon_2.position.y = 21;
+    cannon_2.position.z = 29;
+    ship.add(cannon_2);
+
+    //cannon 3
+    const pedestal_3 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_3.position.x = -10;
+    pedestal_3.position.y = 18;
+    pedestal_3.position.z = 27;
+    ship.add(pedestal_3);
+    const cannon_3 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_3.position.x = -10;
+    cannon_3.position.y = 21;
+    cannon_3.position.z = 29;
+    ship.add(cannon_3);
+
+    //cannon 4
+    const pedestal_4 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_4.position.x = -10;
+    pedestal_4.position.y = -18;
+    pedestal_4.position.z = 27;
+    ship.add(pedestal_4);
+    const cannon_4 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_4.position.x = -10;
+    cannon_4.position.y = -21;
+    cannon_4.position.z = 29;
+    ship.add(cannon_4);
+
+    //cannon 5
+    const pedestal_5 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_5.position.x = 25;
+    pedestal_5.position.y = -18;
+    pedestal_5.position.z = 27;
+    ship.add(pedestal_5);
+    const cannon_5 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_5.position.x = 25;
+    cannon_5.position.y = -21;
+    cannon_5.position.z = 29;
+    ship.add(cannon_5);
+    return ship;
+};
 
 function Wheel() {
 	const wheel = new THREE.Mesh(
