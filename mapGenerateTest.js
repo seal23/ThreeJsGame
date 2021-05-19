@@ -1351,6 +1351,182 @@ function Ship_2(){
     return ship;
 };
 
+function Ship_3(){
+    const ship = new THREE.Group();
+    //main ship
+    var mainwidth = 50;
+    var mainpos = 6;
+    var mainheight = 25;
+    for (let i = 0; i < 10; i++){
+        const main = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(mainwidth, mainheight, 2),
+            new THREE.MeshLambertMaterial({color: 0x8B4513})
+        );
+        main.position.z = mainpos;
+        ship.add(main);
+        var mainRostrumheight = mainheight;
+        var mainRostrumx = 3;
+        for (let j = 0; j < 9; j ++){
+            const mainrt = new THREE.Mesh(
+                new THREE.BoxBufferGeometry(mainwidth, mainRostrumheight, 2),
+                new THREE.MeshLambertMaterial({color: 0x8B4513})
+            );
+            mainrt.position.z = mainpos;
+            mainrt.position.x = mainRostrumx;
+            ship.add(mainrt);
+            mainRostrumheight -= 3;
+            mainRostrumx += 3;
+        }
+        mainwidth += 8;
+        mainheight += 1;
+        mainpos += 2;
+    }
+
+    //back stairs
+    var backStairswidth = 40;
+    var backStairsX = -41;
+    var backStairsZ = 26;
+    for (let i = 0; i < 3; i++) {
+        const backStairs = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(backStairswidth, 34, 2),
+            new THREE.MeshLambertMaterial({color: 0x8B4513})
+        );
+        backStairs.position.z = backStairsZ;
+        backStairs.position.x = backStairsX;
+        ship.add(backStairs);
+        backStairswidth -= 4;
+        backStairsX -=2;
+        backStairsZ += 2;
+    }
+
+    //cabin 
+    const cabin = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(32, 34, 20),
+        new THREE.MeshLambertMaterial({color: 0x8B4513})
+    );
+    cabin.position.x = -45;
+    cabin.position.z = 40;
+    ship.add(cabin);
+
+    //mast
+    const mast = new THREE.Mesh(
+        new THREE.CylinderGeometry( 1, 1, 60, 32 ), 
+        new THREE.MeshBasicMaterial( {color: 0xB8860B} )
+    );
+    mast.rotateX(Math.PI / 2);
+    mast.position.z = 55;
+    mast.position.x = 20;
+    ship.add(mast);
+
+    //sail
+    const pointsBig = [];
+    for ( let i = 0; i < 10; i ++ ) {
+        pointsBig.push( new THREE.Vector2( Math.sin( i * 0.2 ) * 16 + 5, ( i - 5 ) * 5 ) );
+    }
+    const Sail = new THREE.Mesh( 
+        new THREE.LatheGeometry( pointsBig, 14, 0.5, 2.2),
+        new THREE.MeshBasicMaterial( {color: 0xC0C0C0} )
+    );
+    Sail.rotateX(-Math.PI / 2);
+    Sail.position.x = 15;
+    Sail.position.z = 48;
+    ship.add(Sail)
+
+    //observatory
+    const observatoryBackmast = new THREE.Mesh(
+        new THREE.CylinderGeometry( 4, 2, 3, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0xB8860B} )
+    );
+    observatoryBackmast.rotateX(Math.PI / 2);
+    observatoryBackmast.position.x = 20;
+    observatoryBackmast.position.z = 75;
+    ship.add(observatoryBackmast);
+
+    //flag 0x006400
+    const flag = new THREE.Mesh(
+        new THREE.PlaneGeometry( 10, 5, 1 ),
+        new THREE.MeshBasicMaterial( { color: 0x000080, side: THREE.DoubleSide} )
+    );
+    flag.rotateX(Math.PI / 2);
+    flag.position.x = 16;
+    flag.position.z = 82;
+    ship.add(flag);
+
+    //cannon 1
+    const pedestal_1 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(7, 5, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_1.position.x = 50;
+    pedestal_1.position.z = 26;
+    ship.add(pedestal_1);
+    const cannon_1 = new THREE.Mesh(
+        new THREE.CylinderGeometry( 1.5, 1.5, 15, 32 ),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_1.rotateZ(Math.PI / 2);
+    cannon_1.position.x = 54;
+    cannon_1.position.z = 29;
+    ship.add(cannon_1);
+
+    //cannon 2
+    const pedestal_2 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_2.position.x = 8;
+    pedestal_2.position.y = 10;
+    pedestal_2.position.z = 26;
+    ship.add(pedestal_2);
+    const cannon_2 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_2.position.x = 8;
+    cannon_2.position.y = 13;
+    cannon_2.position.z = 28;
+    ship.add(cannon_2);
+
+    //cannon 3
+    const pedestal_3 = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(5, 7, 3),
+        new THREE.MeshLambertMaterial({color: 0xCD853F})
+    );
+    pedestal_3.position.x = 8;
+    pedestal_3.position.y = -10;
+    pedestal_3.position.z = 26;
+    ship.add(pedestal_3);
+    const cannon_3 = new THREE.Mesh(
+        new THREE.CylinderBufferGeometry(2, 2, 15, 32),
+        new THREE.MeshBasicMaterial( {color: 0x000000} )
+    );
+    cannon_3.position.x = 8;
+    cannon_3.position.y = -13;
+    cannon_3.position.z = 28;
+    ship.add(cannon_3);
+
+    //left railing
+    const leftRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(68, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    leftRailing.position.x = 13;
+    leftRailing.position.y = -17;
+    leftRailing.position.z = 26;
+    ship.add(leftRailing);
+
+    // //right railing
+    const rightRailing = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(68, 1, 2.5),
+        new THREE.MeshLambertMaterial({color: 0xA9A9A9})
+    );
+    rightRailing.position.x = 13;
+    rightRailing.position.y = 17;
+    rightRailing.position.z = 26;
+    ship.add(rightRailing);
+    return ship;
+};
+
 function Wheel() {
 	const wheel = new THREE.Mesh(
 		new THREE.BoxBufferGeometry(12, 33, 12),
