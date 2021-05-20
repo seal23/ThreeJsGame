@@ -12,6 +12,41 @@ class Collision
     }
 }
 
+class CannonBall
+{
+    constructor({
+        mesh = undefined,
+        speed = 0.1,
+        velocity = new THREE.Vector3(0, 0, 0),
+        angle = 0,
+        cannonTimer = 2500,
+
+    })
+    {
+        this.mesh = mesh;
+        this.speed = speed;
+        this.velocity = velocity;
+        this.angle = angle;
+        this.cannonTimer = cannonTimer;
+    }
+    Play(timeDelta)
+    {   
+        this.mesh.position.x += this.velocity.x*timeDelta;
+        this.mesh.position.y += this.velocity.y*timeDelta;
+      //  console.log("cannontimer: " + this.cannonTimer);
+        this.cannonTimer = this.cannonTimer-timeDelta;
+        
+       // console.log("cannontimer: " + this.cannonTimer);
+
+        if (this.cannonTimer < 0) {
+            //this.isShootMid = false;
+            scene.remove(this.mesh);
+            return 0;
+        }
+        return 1;
+    }
+    
+}
 
 class Ship 
 {
@@ -29,7 +64,10 @@ class Ship
         turnRight = false,
         cannon = [],
         isShootMid = false,
-        currentCollider = undefined
+        currentCollider = undefined,
+        isCooldownMid = false,
+        timeCoolDownMid = 1000,
+        cooldownMidTimer = 1000
     }
     ){
         this.mesh = mesh;
@@ -46,6 +84,10 @@ class Ship
         this.cannon = cannon;
         this.isShootMid = isShootMid;
         this.currentCollider = currentCollider;
+        this.isCooldownMid = isCooldownMid;
+        this.timeCooldownMid = timeCoolDownMid;
+        this.cooldownMidTimer = cooldownMidTimer;
+        
     }
 
     set collisionObject (collision) {
@@ -162,43 +204,53 @@ class Ship
 	    }
     }
 
-    shootMid(timeDelta)
+    ShootMid(timeDelta)
     {
 
         if (this.isShootMid){
-            if (!iscreated){
-                iscreated = true;
-                plasmaBall = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 4), new THREE.MeshBasicMaterial({
+            if (!this.isCooldownMid)
+            {
+                const plasmaBall = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 4), new THREE.MeshBasicMaterial({
                     color: "aqua"
                   }));
                 plasmaBall.position.z = 43;
-                cannonAngle = this.angle;
-                plasmaBall.position.x = playerShip.position.x + 90* Math.cos(-cannonAngle);
-                plasmaBall.position.y = playerShip.position.y + 90* Math.sin(-cannonAngle);
-                scene.add(plasmaBall);
-                console.log("plasmalBallx: "+ plasmaBall.x + ",plasmalBally: " + plasmaBall.y);
-                cannonTimer = timeCannonMid;
-                console.log("cannon timer: " + cannonTimer);
+                let cannonAngle = this.angle;
+                plasmaBall.position.x = this.mesh.position.x + 90* Math.cos(-this.angle);
+                plasmaBall.position.y = this.mesh.position.y + 90* Math.sin(-this.angle);
+       
+                console.log("plasmalBallx: "+ plasmaBall.position.x + ",plasmalBally: " + plasmaBall.position.y);
+                const cannonTimer = timeCannonMid;
+                let cannonBall = new CannonBall({
+                    mesh: plasmaBall,
+                    speed: cannonSpeed,
+                    velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall.mesh);
+                playerCannonBall.push(cannonBall);
+              
+                this.isCooldownMid = true;
+                this.cooldownMidTimer = this.timeCooldownMid;
             }
-            plasmaBall.position.x += cannonSpeed*timeDelta*Math.cos(-cannonAngle);
-            plasmaBall.position.y += cannonSpeed*timeDelta*Math.sin(-cannonAngle);
-            cannonTimer -= timeDelta;
-            //console.log("cannon timer: " + cannonTimer);
-    
-            if (cannonTimer < 0) {
-                this.isShootMid = false;
-                iscreated = false;
-                scene.remove(plasmaBall);
-                plasmaBall.remove();
+            this.isShootMid = false;
+        }
+    }
+
+    CoolDownMid(timeDelta)
+    {
+        if (this.isCooldownMid)
+        {
+            this.cooldownMidTimer -= timeDelta;
+            if (this.cooldownMidTimer<0)
+            {
+                this.isCooldownMid = false;
             }
         }
-    
-        // const playerSpeed = getPlayerSpeed();
-        // playerAngleMoved -= playerSpeed * timeDelta;
-        // const runSpeed = cannonSpeed * timeDelta;
-        // turnProcess();
-        // runProcess(runSpeed);
+        
     }
+
+    
 }
 
 
@@ -236,7 +288,7 @@ camera.lookAt(0, 0, 0);
 
 
 const playerShip = Car();
-const plasmaBalls = [];
+
 //const playerAngleInitial = Math.PI;
 const speed = 0.035;
 //const speed = 0.1; // increase speed for testing
@@ -247,7 +299,9 @@ let collisionRadius = 0; // conllision radius
 let playerCollisionMesh = createCollision(0, 0, 40, playerRadius,32);
 let playerCollision = new Collision(0, playerCollisionMesh, playerRadius, 0, 0 );
 
+let playerCannonBall = [];
 
+let enemyCannonBall = [];
 
 console.log("col: " + playerCollisionMesh.position.x);
 scene.add(playerShip);
@@ -326,18 +380,9 @@ const scoreElement = document.getElementById("score");
 let otherVehicles = [];
 
 let lastTimestamp;
-let accelerate = false;
-let decelerate = false;
-let turnLeft = false;
-let turnRight = false;
-let angle = 0;
-let cannonAngle = 0;
 let cannonSpeed = 0.2;
-let isShootMid = false;
-let cannonTimer;
 let timeCannonMid = 1500;
-let plasmaBall;
-let iscreated = false;
+
 reset ();
 
 window.addEventListener("mousedown", onMouseDown);
@@ -450,8 +495,11 @@ function animation(timestamp)
 	player.MoveShip(timeDelta);
     camera.position.x = playerShip.position.x;
 	camera.position.y = playerShip.position.y - 210;
-    player.shootMid(timeDelta);
-	
+    player.ShootMid(timeDelta);
+	player.CoolDownMid(timeDelta);
+
+    PlayerCannonBallProcess(timeDelta);
+
 	UpdateMap(tileMapSize);
 
 /*	const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI *2));
@@ -477,6 +525,14 @@ function animation(timestamp)
 }
 
 
+function PlayerCannonBallProcess(timeDelta)
+{
+    playerCannonBall.forEach((cannonBall) => {
+        const alive = cannonBall.Play(timeDelta);
+        if (alive == 0)
+            playerCannonBall.splice(cannonBall, 1);
+    })
+}
 
 function getHitZonePosition(center, angle, clockwise, distance) {
 	const directionAngle = angle + clockwise ? -Math.PI / 2 : +Math.PI / 2;
