@@ -49,6 +49,7 @@ camera.lookAt(0, 0, 0);
 
 
 const playerShip = Car();
+const plasmaBalls = [];
 const playerAngleInitial = Math.PI;
 const speed = 0.035;
 //const speed = 0.1; // increase speed for testing
@@ -124,9 +125,23 @@ let decelerate = false;
 let turnLeft = false;
 let turnRight = false;
 let angle = 0;
+let cannonAngle = 0;
+let cannonSpeed = 0.2;
+let isShootMid = false;
+let cannonTimer;
+let timeCannonMid = 1500;
+let plasmaBall;
+let iscreated = false;
 reset ();
 
+window.addEventListener("mousedown", onMouseDown);
 
+function onMouseDown() {
+    isShootMid = true;
+    //plasmaBall.quaternion.copy(camera.quaternion); // apply camera's quaternion
+    //scene.add(plasmaBall);
+    //plasmaBalls.push(plasmaBall);
+}
 
 window.addEventListener("keydown", function (event){
 	if (event.key =="ArrowUp") {
@@ -190,6 +205,7 @@ function getPlayerSpeed()
 	return speed;	
 }
 
+
 function turnProcess()
 {
     if (turnLeft)
@@ -219,7 +235,6 @@ function runProcess(runSpeed)
 	
     playerShip.position.x += runSpeed* Math.cos(-angle);
     playerShip.position.y += runSpeed* Math.sin(-angle);
-
    
 }
 
@@ -272,10 +287,9 @@ function animation(timestamp)
 	const timeDelta = timestamp - lastTimestamp;
 
 	moveplayerShip(timeDelta);
-
-	camera.position.x = playerShip.position.x;
+    camera.position.x = playerShip.position.x;
 	camera.position.y = playerShip.position.y - 210;
-
+    shootMid(timeDelta);
 	playerColliderCheck();
 	UpdateMap(tileMapSize);
 
@@ -299,6 +313,43 @@ function animation(timestamp)
 
 	renderer.render(scene, camera);
 	lastTimestamp = timestamp;
+}
+
+function shootMid(timeDelta){
+
+    if (isShootMid){
+        if (!iscreated){
+            iscreated = true;
+            plasmaBall = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 4), new THREE.MeshBasicMaterial({
+                color: "aqua"
+              }));
+            plasmaBall.position.z = 43;
+            cannonAngle = angle;
+            plasmaBall.position.x = playerShip.position.x + 90* Math.cos(-cannonAngle);
+            plasmaBall.position.y = playerShip.position.y + 90* Math.sin(-cannonAngle);
+            scene.add(plasmaBall);
+            console.log("plasmalBallx: "+ plasmaBall.x + ",plasmalBally: " + plasmaBall.y);
+            cannonTimer = timeCannonMid;
+            console.log("cannon timer: " + cannonTimer);
+        }
+        plasmaBall.position.x += cannonSpeed*timeDelta*Math.cos(-cannonAngle);
+        plasmaBall.position.y += cannonSpeed*timeDelta*Math.sin(-cannonAngle);
+        cannonTimer -= timeDelta;
+        //console.log("cannon timer: " + cannonTimer);
+
+        if (cannonTimer < 0) {
+            isShootMid = false;
+            iscreated = false;
+            scene.remove(plasmaBall);
+            plasmaBall.remove();
+        }
+    }
+
+    // const playerSpeed = getPlayerSpeed();
+	// playerAngleMoved -= playerSpeed * timeDelta;
+    // const runSpeed = cannonSpeed * timeDelta;
+    // turnProcess();
+    // runProcess(runSpeed);
 }
 
 function getHitZonePosition(center, angle, clockwise, distance) {
