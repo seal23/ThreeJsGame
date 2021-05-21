@@ -29,6 +29,7 @@ class CannonBall
         this.angle = angle;
         this.cannonTimer = cannonTimer;
     }
+
     Play(timeDelta)
     {   
         this.mesh.position.x += this.velocity.x*timeDelta;
@@ -45,7 +46,6 @@ class CannonBall
         }
         return 1;
     }
-    
 }
 
 class Ship 
@@ -55,8 +55,9 @@ class Ship
         speed = 1, 
         angle = 0, 
         velocity = new THREE.Vector3(0, 0, 0), 
-        collision = undefined, 
-        isCollision = false, 
+        headCollision = undefined, 
+        isHeadCollision = false, 
+        headP = 50,
         collisionRadius = 0,
         accelerate = false,
         decelerate = false,
@@ -74,8 +75,9 @@ class Ship
         this.speed = speed;
         this.angle = angle; // alpha
         this.velocity = velocity; // vx, vy
-        this.collision = collision; 
-        this.isCollision = isCollision; 
+        this.headCollision = headCollision; 
+        this.isHeadCollision = isHeadCollision; 
+        this.headP = headP;
         this.collisionRadius = collisionRadius; // collision radius of current collider
         this.accelerate = accelerate;
         this.decelerate = decelerate;
@@ -114,7 +116,6 @@ class Ship
         const runSpeed = playerSpeed * timeDelta;
         this.TurnProcess();
         this.RunProcess(runSpeed);
-
     }
 
     TurnProcess()
@@ -122,16 +123,18 @@ class Ship
         if (this.turnLeft)
         {
             this.mesh.rotation.z += 0.01;
-            this.collision.mesh.rotation.z += 0.01;
             this.angle -= 0.01;
+     
         }
         else 
         if (this.turnRight)
         {
             this.mesh.rotation.z -= 0.01;
-            this.collision.mesh.rotation.z -= 0.01;
             this.angle += 0.01;
+
         }
+        this.headCollision.mesh.position.x = this.mesh.position.x + this.headP*Math.cos(-this.angle);
+        this.headCollision.mesh.position.y = this.mesh.position.y + this.headP*Math.sin(-this.angle);
     }
 
     RunProcess(runSpeed)
@@ -142,13 +145,13 @@ class Ship
         this.velocity.y = runSpeed*Math.sin(-this.angle);
 
         let shipCollisionPosition = new THREE.Vector3();
-        this.collision.mesh.getWorldPosition( shipCollisionPosition);
+        this.headCollision.mesh.getWorldPosition( shipCollisionPosition);
 
 	    const nextPosisionX = shipCollisionPosition.x + this.velocity.x; // nextPossition of collision
 	    const nextPosisionY = shipCollisionPosition.y + this.velocity.y;
 
 
-	    if (this.isCollision)
+	    if (this.isHeadCollision)
         {
             let collisionPosition = new THREE.Vector3(); // create once an reuse it
              this.currentCollider.mesh.getWorldPosition( collisionPosition );  
@@ -161,8 +164,8 @@ class Ship
         }
         this.mesh.position.x += this.velocity.x;
         this.mesh.position.y += this.velocity.y;    
-        this.collision.mesh.position.x += this.velocity.x;
-        this.collision.mesh.position.y += this.velocity.y;
+       // this.headCollision.mesh.position.x += this.velocity.x;
+       // this.headCollision.mesh.position.y += this.velocity.y;
 
     }
 
@@ -176,35 +179,35 @@ class Ship
                 collision.mesh.getWorldPosition( collisionPosition ); 
 
                 let shipCollisionPosition = new THREE.Vector3();
-                this.collision.mesh.getWorldPosition( shipCollisionPosition);
+                this.headCollision.mesh.getWorldPosition( shipCollisionPosition);
              // console.log("mp: " + collisionPosition.x + " " + collisionPosition.y);
 			    collisionR = Distance(
                    shipCollisionPosition.x, shipCollisionPosition.y, 
                     collisionPosition.x, collisionPosition.y
               );
 			
-		    	if (collisionR<this.collision.r+collision.r)
+		    	if (collisionR<this.headCollision.r+collision.r)
 		    	{
 			    	console.log("CollisionDetect");
-			    	this.isCollision = true;
+			    	this.isHeadCollision = true;
 			    	this.collisionRadius = collisionR;
 			    	this.currentCollider = collision;
 			    	foundCollider = true;
 		    	}
 			    else 
 			    {
-				//console.log(playerShip.position.x);
+				//console.log(player.mesh.position.x);
 			    }
 		    })
 		
 	    })
 	    if (!foundCollider)
 	    {
-	    	this.isCollision = false;
+	    	this.isHeadCollision = false;
 	    }
     }
 
-    ShootMid(timeDelta)
+    ShootMid(list, timeDelta)
     {
 
         if (this.isShootMid){
@@ -228,7 +231,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall.mesh);
-                playerCannonBall.push(cannonBall);
+                list.push(cannonBall);
               
                 this.isCooldownMid = true;
                 this.cooldownMidTimer = this.timeCooldownMid;
@@ -253,72 +256,106 @@ class Ship
     
 }
 
+class EnemyShip extends Ship
+{
+    constructor({
+        mesh = undefined, 
+        speed = 1, 
+        angle = 0, 
+        velocity = new THREE.Vector3(0, 0, 0), 
+        headCollision = undefined, 
+        isHeadCollision = false, 
+        headP = 50,
+        collisionRadius = 0,
+        accelerate = false,
+        decelerate = false,
+        turnLeft = false,
+        turnRight = false,
+        cannon = [],
+        isShootMid = false,
+        currentCollider = undefined,
+        isCooldownMid = false,
+        timeCoolDownMid = 1000,
+        cooldownMidTimer = 1000,
+        detectRadius = 1000,
+        isDetect = false,
+        shootRangeRadius = 150,
+        isInRange = false
+    })
+    {
+        super(mesh, speed, angle, velocity, headCollision, isHeadCollision, headP, collisionRadius, accelerate, decelerate, 
+            turnLeft, turnRight, cannon, isShootMid, currentCollider, isCooldownMid, timeCoolDownMid, cooldownMidTimer);
+        this.detectRadius = detectRadius;
+        this.isDetect = isDetect;
+        this.shootRadius = shootRadius;    
+        this.isInRange = isInRange;
+    }
+
+    PlayerDetector(player)
+    {
+        const playerPosition = new THREE.Vector2(player.mesh.position.x, player.mesh.position.y);
+        const thisPosition = new THREE.Vector2(this.mesh.position.x, this.mesh.position.y);
+        const distance = getDistance(thisPosition, playerPosition);
+        if (distance<this.detectRadius)
+        {
+            this.isDetect = true;
+        }
+        else 
+        {
+            this.isDetect = false;
+        }
+    }
+
+    PlayerInRangeDetector(player)
+    {
+        const playerPosition = new THREE.Vector2(player.mesh.position.x, player.mesh.position.y);
+        const thisPosition = new THREE.Vector2(this.mesh.position.x, this.mesh.position.y);
+        const distance = getDistance(thisPosition, playerPosition);
+        if (distance<this.shootRadius)
+        {
+            this.isInRange = true;
+        }
+        else 
+        {
+            this.isInRange = false;
+        }
+    }
+
+}
+
+
 
 const scene = new THREE.Scene();
 const vehicleColors = [0xa52523, 0xbdb638, 0x78b14b];
 
 // camera
-/*
+
 const aspectRatio = window.innerWidth / window.innerHeight;
 const camera = new THREE.PerspectiveCamera( 
-	75, // vertical field of view
+	70, // vertical field of view
 	aspectRatio, // aspect ratio
 	10, // near plane
-	1000 // far plane
+	2000 // far plane
 );
-*/
 
-const aspectRatio = window.innerWidth/ window.innerHeight;
+
+//const aspectRatio = window.innerWidth/ window.innerHeight;
 const cameraWidth = 860;
 const cameraHeight = cameraWidth/ aspectRatio;
-const camera = new THREE.OrthographicCamera(
-	cameraWidth / -2, // left
-	cameraWidth / 2, // right
-	cameraHeight / 2, // top
-	cameraHeight / -2, // bottom
-	0, // near plane
-	1000 // far plane
-)
 
+const offsetY = -180;
 
-camera.position.set(0, -210, 300);
+camera.position.set(0, offsetY, 700);
 //camera.up.set(0, 0, 1);
-
 camera.lookAt(0, 0, 0);
 
-
-const playerShip = Car();
-
-//const playerAngleInitial = Math.PI;
-const speed = 0.035;
-//const speed = 0.1; // increase speed for testing
-const playerRadius = 29; // used for collision
-let isCollision = false;
-let currentCollision; // player collider with
-let collisionRadius = 0; // conllision radius
-let playerCollisionMesh = createCollision(0, 0, 40, playerRadius,32);
-let playerCollision = new Collision(0, playerCollisionMesh, playerRadius, 0, 0 );
-
+let enemyShip = [];
 let playerCannonBall = [];
-
 let enemyCannonBall = [];
 
-console.log("col: " + playerCollisionMesh.position.x);
-scene.add(playerShip);
+let player = CreateShip1(0, 0, 0);
 
-
-let player = new Ship({
-    mesh: playerShip, speed: speed, collision: playerCollision
-});
-
-scene.add(player.collision.mesh);
-//player.collisionObject = playerCollision;
-console.log(player.collision);
-let shipCollisionPosition = new THREE.Vector3();
-player.collision.mesh.getWorldPosition( shipCollisionPosition);
-
-console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
-
+//camera.lookAt(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z);
 
 //Set up Lights
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
@@ -345,7 +382,8 @@ const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
 const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
 let map = [];
-const tileMapSize = 1000;
+const tileMapSize = 1000; // TilesMapSize
+
 const neighborTilesX = [tileMapSize, tileMapSize, tileMapSize, 0, 0, -tileMapSize, -tileMapSize, -tileMapSize];
 const neighborTilesY = [tileMapSize, 0, -tileMapSize, tileMapSize, -tileMapSize, tileMapSize, 0, -tileMapSize];
 const neighborTilesI = [1, 1, 1, 0, 0, -1, -1, -1];
@@ -490,15 +528,11 @@ function animation(timestamp)
 		return;
 	}
 	const timeDelta = timestamp - lastTimestamp;
-
-    player.ShipColliderCheck();
-	player.MoveShip(timeDelta);
-    camera.position.x = playerShip.position.x;
-	camera.position.y = playerShip.position.y - 210;
-    player.ShootMid(timeDelta);
-	player.CoolDownMid(timeDelta);
-
-    PlayerCannonBallProcess(timeDelta);
+   
+    PlayerAnimation(timeDelta);
+    camera.position.x = player.mesh.position.x;
+	camera.position.y = player.mesh.position.y + offsetY;
+    EnemyAnimation(timeDelta);
 
 	UpdateMap(tileMapSize);
 
@@ -524,6 +558,64 @@ function animation(timestamp)
 	lastTimestamp = timestamp;
 }
 
+function PlayerAnimation(timeDelta)
+{
+    player.ShipColliderCheck();
+	player.MoveShip(timeDelta);
+    player.ShootMid(playerCannonBall, timeDelta);
+	player.CoolDownMid(timeDelta);
+    PlayerCannonBallProcess(timeDelta);
+}
+
+function EnemyAnimation(timeDelta)
+{
+    enemyShip.forEach((ship) =>{
+        ship.ShipColliderCheck();
+        ship.MoveShip(timeDelta);
+        ship.ShootMid(enemyCannonBall, timeDelta);
+        ship.CoolDownMid(timeDelta); 
+        EnemyCannonBallProcess(timeDelta);
+    })
+}
+
+function CreateShip1(type, px, py)
+{
+    
+    const shipMesh = Ship1();
+
+    //const playerAngleInitial = Math.PI;
+    const speed = 0.035;
+    //const speed = 0.1; // increase speed for testing
+    const shipRadius = 29; // used for collision
+    let isHeadCollision = false;
+    let currentCollision; // player collider with
+    let collisionRadius = 0; // conllision radius
+    let headP = 70;
+    let headCollisionMesh = createCollision(px + headP, py, 40, shipRadius,32);
+    let headCollision = new Collision(0, headCollisionMesh, shipRadius, 0, 0 );
+
+
+    scene.add(shipMesh);
+    
+
+    let ship = new Ship({
+        mesh: shipMesh, speed: speed, headCollision: headCollision, headP: headP
+    });
+
+
+    scene.add(ship.headCollision.mesh);
+    ship.mesh.position.x = px;
+    ship.mesh.position.y = py;
+
+//player.collisionObject = playerCollision;
+    console.log(ship.headCollision);
+    let shipCollisionPosition = new THREE.Vector3();
+    ship.headCollision.mesh.getWorldPosition( shipCollisionPosition);
+
+    console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
+    return ship;
+}
+
 
 function PlayerCannonBallProcess(timeDelta)
 {
@@ -531,6 +623,15 @@ function PlayerCannonBallProcess(timeDelta)
         const alive = cannonBall.Play(timeDelta);
         if (alive == 0)
             playerCannonBall.splice(cannonBall, 1);
+    })
+}
+
+function EnemyCannonBallProcess(timeDelta)
+{
+    enemyCannonBall.forEach((cannonBall) => {
+        const alive = cannonBall.Play(timeDelta);
+        if (alive == 0)
+            enemyCannonBall.splice(cannonBall, 1);
     })
 }
 
@@ -544,28 +645,18 @@ function getHitZonePosition(center, angle, clockwise, distance) {
   
   function hitDetection() {
 	const playerHitZone1 = getHitZonePosition(
-	  playerShip.position,
+	    player.mesh.position,
 	  playerAngleInitial + playerAngleMoved,
 	  true,
 	  15
 	);
   
 	const playerHitZone2 = getHitZonePosition(
-	  playerShip.position,
+	  player.mesh.position,
 	  playerAngleInitial + playerAngleMoved,
 	  true,
 	  -15
 	);
-  
-	/*
-	if (config.showHitZones) {
-	  playerShip.userData.hitZone1.position.x = playerHitZone1.x;
-	  playerShip.userData.hitZone1.position.y = playerHitZone1.y;
-  
-	  playerShip.userData.hitZone2.position.x = playerHitZone2.x;
-	  playerShip.userData.hitZone2.position.y = playerHitZone2.y;
-	}
-	*/
   
 	const hit = otherVehicles.some((vehicle) => {
 	  if (vehicle.type == "car") {
@@ -582,15 +673,6 @@ function getHitZonePosition(center, angle, clockwise, distance) {
 		  vehicle.clockwise,
 		  -15
 		);
-  /*
-		if (config.showHitZones) {
-		  vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
-		  vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
-  
-		  vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
-		  vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
-		}
-		*/
   
 		// The player hits another vehicle
 		if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
@@ -621,18 +703,6 @@ function getHitZonePosition(center, angle, clockwise, distance) {
 		  vehicle.clockwise,
 		  -35
 		);
-  /*
-		if (config.showHitZones) {
-		  vehicle.mesh.userData.hitZone1.position.x = vehicleHitZone1.x;
-		  vehicle.mesh.userData.hitZone1.position.y = vehicleHitZone1.y;
-  
-		  vehicle.mesh.userData.hitZone2.position.x = vehicleHitZone2.x;
-		  vehicle.mesh.userData.hitZone2.position.y = vehicleHitZone2.y;
-  
-		  vehicle.mesh.userData.hitZone3.position.x = vehicleHitZone3.x;
-		  vehicle.mesh.userData.hitZone3.position.y = vehicleHitZone3.y;
-		}
-		*/
   
 		// The player hits another vehicle
 		if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
@@ -716,7 +786,7 @@ function render()
 	renderer.render( scene, camera );
 	requestAnimationFrame(render);
 }
-function Car() 
+function Ship1() 
 {
 	const ship = new THREE.Group();
 
@@ -1254,7 +1324,7 @@ function Car()
 	//return car;
 }
 
-function Ship_2(){
+function Ship2(){
     const ship = new THREE.Group();
 
     //main ship
@@ -1584,7 +1654,7 @@ function Ship_2(){
     return ship;
 };
 
-function Ship_3(){
+function Ship3(){
     const ship = new THREE.Group();
     //main ship
     var mainwidth = 50;
@@ -1788,116 +1858,6 @@ function getCarFrontTexture()
 	return new THREE.CanvasTexture(canvas);
 }
 
-function getCarSideTexture()
-{
-	const canvas = document.createElement("canvas");
-	canvas.width = 64;
-	canvas.height = 32;
-	const context = canvas.getContext("2d");
-	context.fillStyle = "#ffffff";
-	context.fillRect(0, 0, 128, 32);
-	context.fillStyle = "#666666";
-	context.fillRect(10, 8, 38, 24);
-	context.fillRect(58, 8, 60, 24);
-
-	return new THREE.CanvasTexture(canvas);
-}
-
-function getTruckFrontTexture() {
-	const canvas = document.createElement("canvas");
-	canvas.width = 32;
-	canvas.height = 32;
-	const context = canvas.getContext("2d");
-  
-	context.fillStyle = "#ffffff";
-	context.fillRect(0, 0, 32, 32);
-  
-	context.fillStyle = "#666666";
-	context.fillRect(0, 5, 32, 10);
-  
-	return new THREE.CanvasTexture(canvas);
-  }
-  
-  function getTruckSideTexture() {
-	const canvas = document.createElement("canvas");
-	canvas.width = 32;
-	canvas.height = 32;
-	const context = canvas.getContext("2d");
-  
-	context.fillStyle = "#ffffff";
-	context.fillRect(0, 0, 32, 32);
-  
-	context.fillStyle = "#666666";
-	context.fillRect(17, 5, 15, 10);
-  
-	return new THREE.CanvasTexture(canvas);
-  }
-  
-  function Truck() {
-	const truck = new THREE.Group();
-	const color = pickRandom(vehicleColors);
-  
-	const base = new THREE.Mesh(
-	  new THREE.BoxBufferGeometry(100, 25, 5),
-	  new THREE.MeshLambertMaterial({ color: 0xb4c6fc })
-	);
-	base.position.z = 10;
-	truck.add(base);
-  
-	const cargo = new THREE.Mesh(
-	  new THREE.BoxBufferGeometry(75, 35, 40),
-	  new THREE.MeshLambertMaterial({ color: 0xffffff }) // 0xb4c6fc
-	);
-	cargo.position.x = -15;
-	cargo.position.z = 30;
-	cargo.castShadow = true;
-	cargo.receiveShadow = true;
-	truck.add(cargo);
-  
-	const truckFrontTexture = getTruckFrontTexture();
-	truckFrontTexture.center = new THREE.Vector2(0.5, 0.5);
-	truckFrontTexture.rotation = Math.PI / 2;
-  
-	const truckLeftTexture = getTruckSideTexture();
-	truckLeftTexture.flipY = false;
-  
-	const truckRightTexture = getTruckSideTexture();
-  
-	const cabin = new THREE.Mesh(new THREE.BoxBufferGeometry(25, 30, 30), [
-	  new THREE.MeshLambertMaterial({ color, map: truckFrontTexture }),
-	  new THREE.MeshLambertMaterial({ color }), // back
-	  new THREE.MeshLambertMaterial({ color, map: truckLeftTexture }),
-	  new THREE.MeshLambertMaterial({ color, map: truckRightTexture }),
-	  new THREE.MeshLambertMaterial({ color }), // top
-	  new THREE.MeshLambertMaterial({ color }) // bottom
-	]);
-	cabin.position.x = 40;
-	cabin.position.z = 20;
-	cabin.castShadow = true;
-	cabin.receiveShadow = true;
-	truck.add(cabin);
-  
-	const backWheel = Wheel();
-	backWheel.position.x = -30;
-	truck.add(backWheel);
-  
-	const middleWheel = Wheel();
-	middleWheel.position.x = 10;
-	truck.add(middleWheel);
-  
-	const frontWheel = Wheel();
-	frontWheel.position.x = 38;
-	truck.add(frontWheel);
-  /*
-	if (config.showHitZones) {
-	  truck.userData.hitZone1 = HitZone();
-	  truck.userData.hitZone2 = HitZone();
-	  truck.userData.hitZone3 = HitZone();
-	}
-  */
-	return truck;
-  }
-  
 
 
 function getSeaMarkings(mapWidth, mapHeight)
@@ -2075,44 +2035,7 @@ function renderMap(mapWidth, mapHeight)
  
     addRandomMap(0, 0, minimumRange, maximumRange, 0);
 	generator[500][500] = 1;
-	/*
-    addRandomMap(0, 1000, minimumRange, maximumRange);
-	generator[500][501] = 1;
-    addRandomMap(0, -1000, minimumRange, maximumRange);
-	generator[500][499] = 1;
-    addRandomMap(1000, 0, minimumRange, maximumRange);
-	generator[501][500] = 1;
-    addRandomMap(-1000, 0, minimumRange, maximumRange);
-	generator[499][500] = 1;
-    addRandomMap(1000, 1000, minimumRange, maximumRange);
-	generator[501, 501] = 1;
-    addRandomMap(-1000, 1000, minimumRange, maximumRange);
-	generator[499, 501] = 1;
-    addRandomMap(1000, -1000, minimumRange, maximumRange);
-	generator[501, 499] = 1;
-    addRandomMap(-1000, -1000, minimumRange, maximumRange);
-	generator[499, 499] = 1;
-	*/
-  
-	// Extruded geometry with curbs
-	/*
-    const islandLeft = getLeftIsland();
-	const islandMiddle = getMiddleIsland();
-	const islandRight = getRightIsland();
-	const outerField = getOuterField(mapWidth, mapHeight);
 
-	const fieldGeometry = new THREE.ExtrudeBufferGeometry(
-		[islandLeft, islandMiddle, islandRight, outerField],
-		{depth: 6, bevelEnable: false}
-
-	);
-
-	const fieldMesh = new THREE.Mesh(fieldGeometry, [
-		new THREE.MeshLambertMaterial({ color: 0x67c240}),
-		new THREE.MeshLambertMaterial({ color: 0x23311c})
-	]);
-	scene.add(fieldMesh);
-	*/
 }  
 
 function addRandomMap(centerX, centerY, minimumRange, maximumRange, mType =1)
@@ -2139,6 +2062,21 @@ function randomNegative(x)
     return x;
 }
 
+function addRandomShip(centerX, centerY, minimumRange, maximumRange)
+{
+    let iX, iY;
+    iX = randomR(minimumRange, maximumRange);
+    iY = randomR(minimumRange, maximumRange);
+    iX = randomNegative(iX);
+    iY = randomNegative(iY);
+    addShip(centerX, centerY, iX, iY);
+}
+
+function addShip(centerX, centerY, iX, iY)
+{
+    let ship = CreateShip1(1, centerX +iX, centerY + iY);
+    enemyShip.push(ship);
+}
 
 function Sea0(centerX, centerY, iX, iY)
 {
@@ -2303,10 +2241,10 @@ function Distance(x1, y1, x2, y2)
 function UpdateMap(size)
 {
 	
-	const minimumRange = 1;
-    const maximumRange = 100;
-	let currentX = playerShip.position.x;
-	let currentY = playerShip.position.y;
+	const minimumRange = 0;
+    const maximumRange = 400;
+	let currentX = player.mesh.position.x;
+	let currentY = player.mesh.position.y;
 	const halfSize = size/2;
 	if (currentX < 0) 
 		currentX - halfSize;
@@ -2318,8 +2256,8 @@ function UpdateMap(size)
 	else 
 		currentY + halfSize;
 
-	const currentI = Math.floor(currentX/size);
-	const currentJ = Math.floor(currentY/size);
+	const currentI = Math.floor((currentX+halfSize)/size);
+	const currentJ = Math.floor((currentY+halfSize)/size);
 	const i = currentI+500; // position i in generator array
 	const j = currentJ+500;
 
@@ -2339,8 +2277,8 @@ function UpdateMap(size)
 		}
 		addRandomMap(0, 0, minimumRange, maximumRange, 0);
 		generator[500][500] = 1;
-		playerShip.position.x = 0;
-		playerShip.position.y = 0;
+		player.mesh.position.x = 0;
+		player.mesh.position.y = 0;
 		return;
 	}
 
@@ -2361,7 +2299,7 @@ function UpdateMap(size)
 			{
 				generator[i+di][j+dj] = 1;
 				addRandomMap(x+dx, y+dy, minimumRange, maximumRange);
-
+                addRandomShip(x+dx, y+dy, minimumRange, maximumRange);
 			}
 			
 		}
