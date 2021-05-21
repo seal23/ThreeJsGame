@@ -58,6 +58,12 @@ class Ship
         headCollision = undefined, 
         isHeadCollision = false, 
         headP = 50,
+        bodyCollision = undefined,
+        isBodyCollision = false,
+        bodyP = 0,
+        tailCollision = undefined,
+        isTailCollision = false,
+        tailP = -50,
         collisionRadius = 0,
         accelerate = false,
         decelerate = false,
@@ -78,6 +84,12 @@ class Ship
         this.headCollision = headCollision; 
         this.isHeadCollision = isHeadCollision; 
         this.headP = headP;
+        this.bodyCollision = bodyCollision;
+        this.isBodyCollision = isBodyCollision;
+        this.bodyP = bodyP;
+        this.tailCollision = tailCollision;
+        this.isTailCollision = isTailCollision;
+        this.tailP = tailP;
         this.collisionRadius = collisionRadius; // collision radius of current collider
         this.accelerate = accelerate;
         this.decelerate = decelerate;
@@ -135,6 +147,10 @@ class Ship
         }
         this.headCollision.mesh.position.x = this.mesh.position.x + this.headP*Math.cos(-this.angle);
         this.headCollision.mesh.position.y = this.mesh.position.y + this.headP*Math.sin(-this.angle);
+        this.bodyCollision.mesh.position.x = this.mesh.position.x + this.bodyP*Math.cos(-this.angle);
+        this.bodyCollision.mesh.position.y = this.mesh.position.y + this.bodyP*Math.sin(-this.angle);
+        this.tailCollision.mesh.position.x = this.mesh.position.x + this.tailP*Math.cos(-this.angle);
+        this.tailCollision.mesh.position.y = this.mesh.position.y + this.tailP*Math.sin(-this.angle);
     }
 
     RunProcess(runSpeed)
@@ -266,6 +282,12 @@ class EnemyShip extends Ship
         headCollision = undefined, 
         isHeadCollision = false, 
         headP = 50,
+        bodyCollision = undefined,
+        isBodyCollision = false,
+        bodyP = 0,
+        tailCollision = undefined,
+        isTailCollision = false,
+        tailP = -50,
         collisionRadius = 0,
         accelerate = false,
         decelerate = false,
@@ -343,7 +365,7 @@ const camera = new THREE.PerspectiveCamera(
 const cameraWidth = 860;
 const cameraHeight = cameraWidth/ aspectRatio;
 
-const offsetY = -180;
+const offsetY = -210;
 
 camera.position.set(0, offsetY, 700);
 //camera.up.set(0, 0, 1);
@@ -354,6 +376,8 @@ let playerCannonBall = [];
 let enemyCannonBall = [];
 
 let player = CreateShip1(0, 0, 0);
+
+//player.speed = 0.05;
 
 //camera.lookAt(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z);
 
@@ -382,7 +406,7 @@ const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
 const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
 let map = [];
-const tileMapSize = 1000; // TilesMapSize
+const tileMapSize = 1200; // TilesMapSize
 
 const neighborTilesX = [tileMapSize, tileMapSize, tileMapSize, 0, 0, -tileMapSize, -tileMapSize, -tileMapSize];
 const neighborTilesY = [tileMapSize, 0, -tileMapSize, tileMapSize, -tileMapSize, tileMapSize, 0, -tileMapSize];
@@ -390,10 +414,15 @@ const neighborTilesI = [1, 1, 1, 0, 0, -1, -1, -1];
 const neighborTilesJ = [1, 0, -1, 1, -1, 1, 0, -1];
 
 let generator = new Array(1000);
-
+let tileStorage = new Array(1000);
+let thisI = 500;
+let thisJ = 500;
+let preI = 500;
+let preJ = 500;
 for (let i = 0; i < generator.length; i++) 
 {
   generator[i] = new Array(1000);
+  tileStorage[i] = new Array(1000);
   for (let j = 0; j < generator[i].length; j++)
   {
 	  generator[i][j] = 0;
@@ -569,13 +598,26 @@ function PlayerAnimation(timeDelta)
 
 function EnemyAnimation(timeDelta)
 {
-    enemyShip.forEach((ship) =>{
-        ship.ShipColliderCheck();
-        ship.MoveShip(timeDelta);
-        ship.ShootMid(enemyCannonBall, timeDelta);
-        ship.CoolDownMid(timeDelta); 
-        EnemyCannonBallProcess(timeDelta);
-    })
+    for (let i = enemyShip.length-1; i>-1; i--)
+    {
+        if (Distance(
+            enemyShip[i].mesh.position.x, enemyShip[i].mesh.position.y, 
+            player.mesh.position.x, player.mesh.position.z)> tileMapSize*5)
+        {
+            scene.remove(enemyShip[i].mesh);
+            scene.remove(enemyShip[i].headCollision.mesh);
+            enemyShip.splice(i,1);
+        }
+        else
+        {
+            enemyShip[i].ShipColliderCheck();
+            enemyShip[i].MoveShip(timeDelta);
+            enemyShip[i].ShootMid(enemyCannonBall, timeDelta);
+            enemyShip[i].CoolDownMid(timeDelta); 
+            EnemyCannonBallProcess(timeDelta);
+        }
+       
+    }
 }
 
 function CreateShip1(type, px, py)
@@ -586,24 +628,33 @@ function CreateShip1(type, px, py)
     //const playerAngleInitial = Math.PI;
     const speed = 0.035;
     //const speed = 0.1; // increase speed for testing
-    const shipRadius = 29; // used for collision
-    let isHeadCollision = false;
-    let currentCollision; // player collider with
-    let collisionRadius = 0; // conllision radius
-    let headP = 70;
+    const shipRadius = 30; // used for collision
+ 
+    let headP = 60;
     let headCollisionMesh = createCollision(px + headP, py, 40, shipRadius,32);
     let headCollision = new Collision(0, headCollisionMesh, shipRadius, 0, 0 );
 
+    let bodyP = 0;
+    let bodyCollisionMesh = createCollision(px + bodyP, py, 40, shipRadius,32);
+    let bodyCollision = new Collision(0, bodyCollisionMesh, shipRadius, 0, 0 );
 
+    let tailP = -60;
+    let tailCollisionMesh = createCollision(px + tailP, py, 40, shipRadius,32);
+    let tailCollision = new Collision(0, tailCollisionMesh, shipRadius, 0, 0 );
     scene.add(shipMesh);
     
 
     let ship = new Ship({
-        mesh: shipMesh, speed: speed, headCollision: headCollision, headP: headP
+        mesh: shipMesh, speed: speed, 
+        headCollision: headCollision, headP: headP, 
+        bodyCollision: bodyCollision, bodyP: bodyP,
+        tailCollision: tailCollision, tailP: tailP
     });
 
 
     scene.add(ship.headCollision.mesh);
+    scene.add(ship.bodyCollision.mesh);
+    scene.add(ship.tailCollision.mesh);
     ship.mesh.position.x = px;
     ship.mesh.position.y = py;
 
@@ -619,167 +670,29 @@ function CreateShip1(type, px, py)
 
 function PlayerCannonBallProcess(timeDelta)
 {
-    playerCannonBall.forEach((cannonBall) => {
-        const alive = cannonBall.Play(timeDelta);
+    for (let i = playerCannonBall.length-1; i>-1; i--) 
+    {
+        const alive = playerCannonBall[i].Play(timeDelta);
         if (alive == 0)
-            playerCannonBall.splice(cannonBall, 1);
-    })
+            playerCannonBall.splice(i, 1);
+    }
 }
 
 function EnemyCannonBallProcess(timeDelta)
 {
-    enemyCannonBall.forEach((cannonBall) => {
-        const alive = cannonBall.Play(timeDelta);
+    for (let i = enemyCannonBall.length-1; i>-1; i--) 
+    {
+        const alive = enemyCannonBall[i].Play(timeDelta);
         if (alive == 0)
-            enemyCannonBall.splice(cannonBall, 1);
-    })
+            enemyCannonBall.splice(i, 1);
+    }
 }
 
-function getHitZonePosition(center, angle, clockwise, distance) {
-	const directionAngle = angle + clockwise ? -Math.PI / 2 : +Math.PI / 2;
-	return {
-	  x: center.x + Math.cos(directionAngle) * distance,
-	  y: center.y + Math.sin(directionAngle) * distance
-	};
-  }
-  
-  function hitDetection() {
-	const playerHitZone1 = getHitZonePosition(
-	    player.mesh.position,
-	  playerAngleInitial + playerAngleMoved,
-	  true,
-	  15
-	);
-  
-	const playerHitZone2 = getHitZonePosition(
-	  player.mesh.position,
-	  playerAngleInitial + playerAngleMoved,
-	  true,
-	  -15
-	);
-  
-	const hit = otherVehicles.some((vehicle) => {
-	  if (vehicle.type == "car") {
-		const vehicleHitZone1 = getHitZonePosition(
-		  vehicle.mesh.position,
-		  vehicle.angle,
-		  vehicle.clockwise,
-		  15
-		);
-  
-		const vehicleHitZone2 = getHitZonePosition(
-		  vehicle.mesh.position,
-		  vehicle.angle,
-		  vehicle.clockwise,
-		  -15
-		);
-  
-		// The player hits another vehicle
-		if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
-		if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
-  
-		// Another vehicle hits the player
-		if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
-	  }
-  
-	  if (vehicle.type == "truck") {
-		const vehicleHitZone1 = getHitZonePosition(
-		  vehicle.mesh.position,
-		  vehicle.angle,
-		  vehicle.clockwise,
-		  35
-		);
-  
-		const vehicleHitZone2 = getHitZonePosition(
-		  vehicle.mesh.position,
-		  vehicle.angle,
-		  vehicle.clockwise,
-		  0
-		);
-  
-		const vehicleHitZone3 = getHitZonePosition(
-		  vehicle.mesh.position,
-		  vehicle.angle,
-		  vehicle.clockwise,
-		  -35
-		);
-  
-		// The player hits another vehicle
-		if (getDistance(playerHitZone1, vehicleHitZone1) < 40) return true;
-		if (getDistance(playerHitZone1, vehicleHitZone2) < 40) return true;
-		if (getDistance(playerHitZone1, vehicleHitZone3) < 40) return true;
-  
-		// Another vehicle hits the player
-		if (getDistance(playerHitZone2, vehicleHitZone1) < 40) return true;
-	  }
-	});
-  
-	if (hit) {
-
-	  renderer.setAnimationLoop(null); // Stop animation loop
-	}
-  }
 
 function getDistance(cordinate1, cordinate2)
 {
 	return Math.sqrt((cordinate2.x - cordinate1.x)**2 + (cordinate2.y - cordinate1.y)**2);
 }
-
-function addVehicles()
-{
-	const vehicleTypes = ["car", "truck"];
-	const type = pickRandom(vehicleTypes);
-	const mesh = type == "car" ? Car() : Truck();
-	scene.add(mesh);
-
-	const clockwise = Math.random() >= 0.5;
-	const angle = clockwise ? Math.PI/2 : -Math.PI/2;
-
-	const speed = getVehicleSpeed(type);
-
-	otherVehicles.push({ mesh, type, clockwise, angle, speed});
-
-}
-
-function getVehicleSpeed(type) 
-{
-	if (type = "car")
-	{
-		const minimumSpeed = 1;
-		const maximumSpeed = 2;
-		return minimumSpeed * Math.random() * (maximumSpeed - minimumSpeed);
-	}
-	if (type = "truck")
-	{
-		const minimumSpeed = 0.6;
-		const maximumSpeed = 1.5;
-		return minimumSpeed * Math.random() * (maximumSpeed - minimumSpeed);
-	}
-}
-
-function moveOtherVehicles(timeDelta)
-{
-	otherVehicles.forEach((vehicle) => {
-		if (vehicle.clockwise) 
-		{
-			vehicle.angle -= speed*timeDelta * vehicle.speed;
-		}
-		else 
-		{
-			vehicle.angle += speed * timeDelta * vehicle.speed;
-		}
-
-		const vehicleX = Math.cos(vehicle.angle) * trackRadius + arcCenterX;
-		const vehicleY = Math.sin(vehicle.angle) * trackRadius;
-		const rotation = vehicle.angle + (vehicle.clockwise ? -Math.PI / 2 : Math.PI / 2);
-
-		vehicle.mesh.position.x = vehicleX;
-		vehicle.mesh.position.y = vehicleY;
-		vehicle.mesh.rotation.z = rotation;
-
-	})
-}
-
 
 function render()
 {
@@ -2075,6 +1988,12 @@ function addRandomShip(centerX, centerY, minimumRange, maximumRange)
 function addShip(centerX, centerY, iX, iY)
 {
     let ship = CreateShip1(1, centerX +iX, centerY + iY);
+
+    const randomAngle = randomR(0, 2*Math.PI);
+    ship.angle += randomAngle;
+    ship.mesh.rotation.z -= randomAngle;
+   // ship.headCollision.mesh.position.x = ship.mesh.position.x+ ship.headP*Math.cos(-ship.angle);
+    //ship.headCollision.mesh.position.y = ship.mesh.position.y+ ship.headP*Math.sin(-ship.angle);
     enemyShip.push(ship);
 }
 
@@ -2162,6 +2081,13 @@ function addMap(centerX, centerY, iX, iY, mType = 1)
   
 	scene.add(mesh);
 	map.push({mesh, type, collider});
+    const currentI = Math.floor((centerX)/tileMapSize);
+	const currentJ = Math.floor((centerY)/tileMapSize);
+	const i = currentI+500; // position i in generator array
+	const j = currentJ+500;
+
+    tileStorage[i][j] = {mesh, type, collider};
+
 
 }
 
@@ -2240,9 +2166,8 @@ function Distance(x1, y1, x2, y2)
 
 function UpdateMap(size)
 {
-	
 	const minimumRange = 0;
-    const maximumRange = 400;
+    const maximumRange = tileMapSize/2-200;
 	let currentX = player.mesh.position.x;
 	let currentY = player.mesh.position.y;
 	const halfSize = size/2;
@@ -2264,12 +2189,11 @@ function UpdateMap(size)
 	const x = currentI * size;
 	const y = currentJ * size;
 
-	if (i<0 || i>999 || j<0 || j>999) // reset the Map when it too big
+	if (i<1 || i>998 || j<1 || j>998) // reset the Map when it too big
 	{
 		
 		for (let i = 0; i < generator.length; i++) 
 		{
-  			generator[i] = new Array(1000);
   			for (let j = 0; j < generator[i].length; j++)
   			{
 	  			generator[i][j] = 0;
@@ -2282,11 +2206,15 @@ function UpdateMap(size)
 		return;
 	}
 
-	if (generator[i][j] == 1)
+	if ((generator[i][j] == 1) || (generator[i][j] == generator[thisI][thisJ] +1))
 	{
+        
+        if (generator[i][j] == 1)
+            generator[i][j] = 2;
 		console.log("Came in new tile => x: " +x + " y: " + y);
+        console.log("generator: " + generator[i][j] + " " + generator[thisI][thisJ]);
 	
-		generator[i][j] = 2;
+	
 		for (let k=0; k<neighborTilesI.length; k++)
 		{
 			
@@ -2294,17 +2222,80 @@ function UpdateMap(size)
 			let dj = neighborTilesJ[k];
 			let dx = neighborTilesX[k];
 			let dy = neighborTilesY[k];
-
-			if (generator[i+di][j+dj] == 0)
+            const ii = i+di;
+            const jj = j+dj;
+			if (generator[ii][jj] == 0)
 			{
-				generator[i+di][j+dj] = 1;
+				generator[ii][jj] = generator[i][j] + 1;
 				addRandomMap(x+dx, y+dy, minimumRange, maximumRange);
                 addRandomShip(x+dx, y+dy, minimumRange, maximumRange);
 			}
+            else if (generator[ii][jj] == -1)
+            {
+                generator[ii][jj] = generator[i][j]+1;
+                scene.add(tileStorage[ii][jj].mesh);
+                const mesh = tileStorage[ii][jj].mesh;
+                const type = tileStorage[ii][jj].type;
+                const collider = tileStorage[ii][jj].collider;
+	            map.push({
+                    mesh, type, collider
+                });
+
+            }
+            else
+            {
+                generator[ii][jj] = generator[i][j] + 1;
+            }
 			
 		}
 
+
+        for (let k=0; k<neighborTilesI.length; k++)
+		{
+			let di = neighborTilesI[k];
+			let dj = neighborTilesJ[k];
+		
+            const ii = preI+di;
+            const jj = preJ+dj;
+            if (ii == i & jj == j)
+                continue;
+
+            console.log("generator compare: " + generator[i][j] + " " + generator[ii][jj])
+
+            if (generator[ii][jj] == -1)
+                continue;
+            if (generator[ii][jj] != generator[i][j]+1 )
+            {
+                if (generator[ii][jj] != 0)
+                {
+                    generator[ii][jj] = -1
+                    console.log("begin delete tile");
+                    for (let m = map.length-1; m>-1; m--) 
+                    {
+                        const tileI = Math.floor((map[m].mesh.position.x)/size) + 500;
+                        const tileJ = Math.floor((map[m].mesh.position.y)/size) + 500;
+
+                        //console.log(ii + " " + jj + " " + tileI + " " + tileJ)
+                        if (tileI == ii && tileJ == jj)
+                        {
+                            console.log("Delete and Save x: " + map[m].mesh.position.x + " y: " + map[m].mesh.position.y);
+                            scene.remove(map[m].mesh);
+                            map.splice(m,1);
+                        }
+                    }
+                    
+                }
+            }
+
+        }
+
+        preI = thisI;
+        preJ = thisJ;
+        thisI = i;
+        thisJ = j;
 	}
+
+    
 	
 }
 
