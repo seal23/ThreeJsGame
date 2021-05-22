@@ -71,10 +71,12 @@ class Ship
         turnRight = false,
         cannon = [],
         isShootMid = false,
+        isShootLeft = false,
+        isShootRight = false,
         currentCollider = undefined,
-        isCooldownMid = false,
-        timeCoolDownMid = 1000,
-        cooldownMidTimer = 1000
+        isCooldown = false,
+        timeCoolDown = 1000,
+        cooldownTimer = 1000
     }
     ){
         this.mesh = mesh;
@@ -97,10 +99,12 @@ class Ship
         this.turnRight = turnRight;
         this.cannon = cannon;
         this.isShootMid = isShootMid;
+        this.isShootLeft = isShootLeft;
+        this.isShootRight = isShootRight;
         this.currentCollider = currentCollider;
-        this.isCooldownMid = isCooldownMid;
-        this.timeCooldownMid = timeCoolDownMid;
-        this.cooldownMidTimer = cooldownMidTimer;
+        this.isCooldown = isCooldown;
+        this.timeCooldown = timeCoolDown;
+        this.cooldownTimer = cooldownTimer;
         
     }
 
@@ -227,43 +231,170 @@ class Ship
     {
 
         if (this.isShootMid){
-            if (!this.isCooldownMid)
+            if (!this.isCooldown)
             {
-                const plasmaBall = new THREE.Mesh(new THREE.SphereGeometry(4, 8, 4), new THREE.MeshBasicMaterial({
-                    color: "aqua"
+                const bullet = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
                   }));
-                plasmaBall.position.z = 43;
+                bullet.position.z = 43;
                 let cannonAngle = this.angle;
-                plasmaBall.position.x = this.mesh.position.x + 90* Math.cos(-this.angle);
-                plasmaBall.position.y = this.mesh.position.y + 90* Math.sin(-this.angle);
-       
-                console.log("plasmalBallx: "+ plasmaBall.position.x + ",plasmalBally: " + plasmaBall.position.y);
+                bullet.position.x = this.mesh.position.x + 90* Math.cos(-this.angle);
+                bullet.position.y = this.mesh.position.y + 90* Math.sin(-this.angle);
+                const cannonTimer = timeCannonMid;
+                let midSpeed = cannonSpeed + 0.05;
+                let cannonBall = new CannonBall({
+                    mesh: bullet,
+                    speed: midSpeed,
+                    velocity: new THREE.Vector3(midSpeed*Math.cos(-cannonAngle), midSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall.mesh);
+                playerCannonBall.push(cannonBall);
+              
+                this.isCooldown = true;
+                this.cooldownTimer = this.timeCooldown;
+            }
+            this.isShootMid = false;
+        }
+
+        if (this.isShootRight){
+            if (!this.isCooldown){
+                const bullet_1 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
+                  }));
+                bullet_1.position.z = 34;
+                let cannonAngle = this.angle + Math.PI / 2;
+                bullet_1.position.x = this.mesh.position.x + 34* Math.cos(-this.angle);
+                bullet_1.position.y = this.mesh.position.y + 34* Math.sin(-this.angle);
+                bullet_1.position.x += 34* Math.cos(-cannonAngle);
+                bullet_1.position.y += 34* Math.sin(-cannonAngle);
+                const cannonTimer = timeCannonMid;
+                let cannonBall_1 = new CannonBall({
+                    mesh: bullet_1,
+                    speed: cannonSpeed,
+                    velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall_1.mesh);
+                playerCannonBall.push(cannonBall_1);
+
+                const bullet_2 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
+                  }));
+                bullet_2.position.z = 34;
+                bullet_2.position.x = this.mesh.position.x + 8* Math.cos(-this.angle);
+                bullet_2.position.y = this.mesh.position.y + 8* Math.sin(-this.angle);
+                bullet_2.position.x += 34* Math.cos(-cannonAngle);
+                bullet_2.position.y += 34* Math.sin(-cannonAngle);
+                let cannonBall_2 = new CannonBall({
+                    mesh: bullet_2,
+                    speed: cannonSpeed,
+                    velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall_2.mesh);
+                playerCannonBall.push(cannonBall_2);
+
+                const bullet_3 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
+                  }));
+                bullet_3.position.z = 34;
+                bullet_3.position.x = this.mesh.position.x - 24* Math.cos(-this.angle);
+                bullet_3.position.y = this.mesh.position.y - 24* Math.sin(-this.angle);
+                bullet_3.position.x += 34* Math.cos(-cannonAngle);
+                bullet_3.position.y += 34* Math.sin(-cannonAngle);
+                let cannonBall_3 = new CannonBall({
+                    mesh: bullet_3,
+                    speed: cannonSpeed,
+                    velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall_3.mesh);
+                playerCannonBall.push(cannonBall_3);
+                this.isCooldown = true;
+                this.cooldownTimer = this.timeCooldown;
+            }
+            this.isShootRight = false;
+        }
+
+        if (this.isShootLeft){
+            if (!this.isCooldown){
+                const bullet = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
+                  }));
+                bullet.position.z = 34;
+                let cannonAngle = this.angle - Math.PI / 2;
+                bullet.position.x = this.mesh.position.x + 34* Math.cos(-this.angle);
+                bullet.position.y = this.mesh.position.y + 34* Math.sin(-this.angle);
+                bullet.position.x += 35* Math.cos(-cannonAngle);
+                bullet.position.y += 35* Math.sin(-cannonAngle);
                 const cannonTimer = timeCannonMid;
                 let cannonBall = new CannonBall({
-                    mesh: plasmaBall,
+                    mesh: bullet,
                     speed: cannonSpeed,
                     velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
                     angle: cannonAngle,
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall.mesh);
-                list.push(cannonBall);
-              
-                this.isCooldownMid = true;
-                this.cooldownMidTimer = this.timeCooldownMid;
+                playerCannonBall.push(cannonBall);
+
+                const bullet_2 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
+                  }));
+                bullet_2.position.z = 34;
+                bullet_2.position.x = this.mesh.position.x + 6* Math.cos(-this.angle);
+                bullet_2.position.y = this.mesh.position.y + 6* Math.sin(-this.angle);
+                bullet_2.position.x += 35* Math.cos(-cannonAngle);
+                bullet_2.position.y += 35* Math.sin(-cannonAngle);
+                let cannonBall_2 = new CannonBall({
+                    mesh: bullet_2,
+                    speed: cannonSpeed,
+                    velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall_2.mesh);
+                playerCannonBall.push(cannonBall_2);
+
+                const bullet_3 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
+                    color: "black"
+                  }));
+                bullet_3.position.z = 34;
+                bullet_3.position.x = this.mesh.position.x - 25* Math.cos(-this.angle);
+                bullet_3.position.y = this.mesh.position.y - 25* Math.sin(-this.angle);
+                bullet_3.position.x += 35* Math.cos(-cannonAngle);
+                bullet_3.position.y += 35* Math.sin(-cannonAngle);
+                let cannonBall_3 = new CannonBall({
+                    mesh: bullet_3,
+                    speed: cannonSpeed,
+                    velocity: new THREE.Vector3(cannonSpeed*Math.cos(-cannonAngle), cannonSpeed*Math.sin(-cannonAngle), 0),
+                    angle: cannonAngle,
+                    cannonTimer: cannonTimer
+                })
+                scene.add(cannonBall_3.mesh);
+                playerCannonBall.push(cannonBall_3);
+                this.isCooldown = true;
+                this.cooldownTimer = this.timeCooldown;
+                this.isCooldown = true;
+                this.cooldownTimer = this.timeCooldown;
             }
-            this.isShootMid = false;
+            this.isShootLeft = false;
         }
     }
 
     CoolDownMid(timeDelta)
     {
-        if (this.isCooldownMid)
+        if (this.isCooldown)
         {
-            this.cooldownMidTimer -= timeDelta;
-            if (this.cooldownMidTimer<0)
+            this.cooldownTimer -= timeDelta;
+            if (this.cooldownTimer<0)
             {
-                this.isCooldownMid = false;
+                this.isCooldown = false;
             }
         }
         
@@ -452,14 +583,11 @@ let timeCannonMid = 1500;
 
 reset ();
 
-window.addEventListener("mousedown", onMouseDown);
+// window.addEventListener("mousedown", onMouseDown);
 
-function onMouseDown() {
-    player.isShootMid = true;
-    //plasmaBall.quaternion.copy(camera.quaternion); // apply camera's quaternion
-    //scene.add(plasmaBall);
-    //plasmaBalls.push(plasmaBall);
-}
+// function onMouseDown() {
+//     player.isShootMid = true;
+// }
 
 window.addEventListener("keydown", function (event){
 	if (event.key =="ArrowUp") {
@@ -480,6 +608,21 @@ window.addEventListener("keydown", function (event){
 
     if (event.key =="ArrowRight") {
         player.turnRight = true;
+    }
+
+    if (event.key == "W" || event.key == "w"){
+        player.isShootMid = true;
+        return;
+    }
+
+    if (event.key == "A" || event.key == "a"){
+        player.isShootLeft = true;
+        return;
+    }
+
+    if (event.key == "D" || event.key == "d"){
+        player.isShootRight = true;
+        return;
     }
 
 	if (event.key =="R" || event.key=="r") {
