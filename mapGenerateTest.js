@@ -17,6 +17,7 @@ class CannonBall
     constructor({
         mesh = undefined,
         speed = 0.1,
+        radius = 3,
         velocity = new THREE.Vector3(0, 0, 0),
         angle = 0,
         cannonTimer = 2500,
@@ -25,6 +26,7 @@ class CannonBall
     {
         this.mesh = mesh;
         this.speed = speed;
+        this.radius = radius;
         this.velocity = velocity;
         this.angle = angle;
         this.cannonTimer = cannonTimer;
@@ -51,6 +53,9 @@ class CannonBall
 class Ship 
 {
     constructor({
+        type = 3,
+        hp = 10,
+        atk = 1,
         mesh = undefined, 
         speed = 1, 
         angle = 0, 
@@ -79,6 +84,9 @@ class Ship
         cooldownTimer = 1000
     }
     ){
+        this.type = type;
+        this.hp = hp;
+        this.atk = atk;
         this.mesh = mesh;
         this.speed = speed;
         this.angle = angle; // alpha
@@ -250,7 +258,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall.mesh);
-                playerCannonBall.push(cannonBall);
+                this.PushCannonBall(cannonBall);
               
                 this.isCooldown = true;
                 this.cooldownTimer = this.timeCooldown;
@@ -278,7 +286,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall_1.mesh);
-                playerCannonBall.push(cannonBall_1);
+                this.PushCannonBall(cannonBall_1);
 
                 const bullet_2 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
                     color: "black"
@@ -296,7 +304,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall_2.mesh);
-                playerCannonBall.push(cannonBall_2);
+                this.PushCannonBall(cannonBall_2);
 
                 const bullet_3 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
                     color: "black"
@@ -314,7 +322,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall_3.mesh);
-                playerCannonBall.push(cannonBall_3);
+                this.PushCannonBall(cannonBall_3);
                 this.isCooldown = true;
                 this.cooldownTimer = this.timeCooldown;
             }
@@ -341,7 +349,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall.mesh);
-                playerCannonBall.push(cannonBall);
+                this.PushCannonBall(cannonBall);
 
                 const bullet_2 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
                     color: "black"
@@ -359,7 +367,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall_2.mesh);
-                playerCannonBall.push(cannonBall_2);
+                this.PushCannonBall(cannonBall_2);
 
                 const bullet_3 = new THREE.Mesh(new THREE.SphereGeometry(3, 32, 32), new THREE.MeshBasicMaterial({
                     color: "black"
@@ -377,7 +385,7 @@ class Ship
                     cannonTimer: cannonTimer
                 })
                 scene.add(cannonBall_3.mesh);
-                playerCannonBall.push(cannonBall_3);
+                this.PushCannonBall(cannonBall_3);
                 this.isCooldown = true;
                 this.cooldownTimer = this.timeCooldown;
                 this.isCooldown = true;
@@ -400,12 +408,20 @@ class Ship
         
     }
 
+    PushCannonBall(cannonBall)
+    {
+        playerCannonBall.push(cannonBall);
+    }
+
     
 }
 
 class EnemyShip extends Ship
 {
     constructor({
+        type = 3,
+        hp = 10,
+        atk = 1,
         mesh = undefined, 
         speed = 1, 
         angle = 0, 
@@ -426,18 +442,25 @@ class EnemyShip extends Ship
         turnRight = false,
         cannon = [],
         isShootMid = false,
+        isShootLeft = false,
+        isShootRight = false,
         currentCollider = undefined,
-        isCooldownMid = false,
-        timeCoolDownMid = 1000,
-        cooldownMidTimer = 1000,
+        isCooldown = false,
+        timeCoolDown = 1000,
+        cooldownTimer = 1000,
         detectRadius = 1000,
         isDetect = false,
-        shootRangeRadius = 150,
+        shootRadius = 150,
         isInRange = false
     })
     {
-        super(mesh, speed, angle, velocity, headCollision, isHeadCollision, headP, collisionRadius, accelerate, decelerate, 
-            turnLeft, turnRight, cannon, isShootMid, currentCollider, isCooldownMid, timeCoolDownMid, cooldownMidTimer);
+        super({type: type, hp: hp, atk: atk, mesh: mesh, speed: speed, angle: angle, velocity: velocity, headCollision: headCollision, 
+            isHeadCollision: isHeadCollision, headP: headP, bodyCollision: bodyCollision, isBodyCollision: isBodyCollision, 
+            bodyP: bodyP, tailCollision: tailCollision, isTailCollision: isTailCollision, tailP: tailP, 
+            collisionRadius: collisionRadius, accelerate: accelerate, decelerate: decelerate, turnleft: turnLeft, 
+            turnRight: turnRight, cannon: cannon, isShootMid: isShootMid, isShootLeft: isShootLeft, 
+            isShootRight: isShootRight, currentCollider: currentCollider, isCoolDown: isCooldown, 
+            timeCoolDown: timeCoolDown, cooldownTimer: cooldownTimer});
         this.detectRadius = detectRadius;
         this.isDetect = isDetect;
         this.shootRadius = shootRadius;    
@@ -474,6 +497,10 @@ class EnemyShip extends Ship
         }
     }
 
+    PushCannonBall(cannonBall)
+    {
+        enemyCannonBall.push(cannonBall);
+    }
 }
 
 
@@ -502,11 +529,13 @@ camera.position.set(0, offsetY, 700);
 //camera.up.set(0, 0, 1);
 camera.lookAt(0, 0, 0);
 
+let exp = 0;
+let score = 0;
 let enemyShip = [];
 let playerCannonBall = [];
 let enemyCannonBall = [];
 
-let player = CreateShip1(0, 0, 0);
+let player = CreateShip1(true, 0, 0);
 
 //player.speed = 0.05;
 
@@ -573,7 +602,6 @@ document.body.appendChild( renderer.domElement );
 
 let ready;
 let playerAngleMoved;
-let score;
 const scoreElement = document.getElementById("score");
 let otherVehicles = [];
 
@@ -705,8 +733,11 @@ function animation(timestamp)
     camera.position.x = player.mesh.position.x;
 	camera.position.y = player.mesh.position.y + offsetY;
     EnemyAnimation(timeDelta);
+    CheckColliderPlayerCannon();
 
+    CheckColliderPvE(timeDelta);   
 	UpdateMap(tileMapSize);
+    LevelUp();
 
 /*	const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI *2));
 
@@ -728,6 +759,100 @@ function animation(timestamp)
 
 	renderer.render(scene, camera);
 	lastTimestamp = timestamp;
+}
+
+function LevelUp()
+{
+    if (exp>20 && player.type ==2)
+    {
+        let ship = CreateShip3(true, player.mesh.position.x, player.mesh.position.y);
+        ship.angle = player.angle;
+        ship.mesh.rotation.z = player.mesh.rotation.z;
+        scene.remove(player.mesh);
+        player.collision = null;
+        player = ship;
+    }
+    else if (exp>5 && player.type ==1)
+    {
+        let ship = CreateShip2(true, player.mesh.position.x, player.mesh.position.y);
+        ship.angle = player.angle;
+        ship.mesh.rotation.z = player.mesh.rotation.z;
+        scene.remove(player.mesh);
+        player.collision = null;
+        player = null;
+        player = ship;
+    }
+}
+
+function CheckColliderPvE(timeDelta)
+{
+    for (let i=0; i<enemyShip.length; i++)
+    {
+
+    }
+}
+
+function CheckColliderPlayerCannon()
+{
+    for (let i =playerCannonBall.length - 1; i>-1; i--)
+    {
+        let isHit =false;
+        for (let j = enemyShip.length - 1; j> -1; j--)
+        {
+            if (IsCannonBallHitShip(playerCannonBall[i], enemyShip[j]))
+                isHit = true;
+            if (isHit)
+            {
+                console.log("hit enemy");
+                enemyShip[j].hp -= player.atk;
+                console.log("hp: ", enemyShip[j].hp);
+                if (enemyShip[j].hp < 1)
+                {
+                    score += 1;
+                    scoreElement.innerText = score;
+                    exp += enemyShip[j].type;
+                    console.log("exp: " + exp);
+                    scene.remove(enemyShip[j].mesh);
+                    enemyShip.splice(j,1);
+                   
+                }
+                j = -1;
+            }
+        }
+        if (isHit)
+        {
+            scene.remove(playerCannonBall[i].mesh);
+            playerCannonBall.splice(i,1);
+        }
+        
+    }
+}
+
+function IsCannonBallHitShip(cannonBall, ship)
+{
+    if (Distance(
+        ship.headCollision.mesh.position.x, ship.headCollision.mesh.position.y,
+        cannonBall.mesh.position.x, cannonBall.mesh.position.y
+        )< cannonBall.radius+ship.headCollision.r)
+    {
+        return true;        
+    }
+    if (Distance(
+        ship.bodyCollision.mesh.position.x, ship.bodyCollision.mesh.position.y,
+        cannonBall.mesh.position.x, cannonBall.mesh.position.y
+    ) < cannonBall.radius+ship.bodyCollision.r)
+    {
+        return true;
+    }
+    if (Distance(
+        ship.tailCollision.mesh.position.x, ship.tailCollision.mesh.position.y,
+        cannonBall.mesh.position.x, cannonBall.mesh.position.y
+    ) < cannonBall.radius+ship.tailCollision.r)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 function PlayerAnimation(timeDelta)
@@ -763,10 +888,10 @@ function EnemyAnimation(timeDelta)
     }
 }
 
-function CreateShip1(type, px, py)
+function CreateShip3(isPlayer, px, py)
 {
     
-    const shipMesh = Ship1();
+    const shipMesh = Ship3();
 
     //const playerAngleInitial = Math.PI;
     const speed = 0.035;
@@ -786,20 +911,38 @@ function CreateShip1(type, px, py)
     let tailCollision = new Collision(0, tailCollisionMesh, shipRadius, 0, 0 );
     scene.add(shipMesh);
     
+    let ship;
 
-    let ship = new Ship({
-        mesh: shipMesh, speed: speed, 
-        headCollision: headCollision, headP: headP, 
-        bodyCollision: bodyCollision, bodyP: bodyP,
-        tailCollision: tailCollision, tailP: tailP
-    });
+    if (isPlayer)
+    {
+        ship = new Ship({
+            type: 3,
+            mesh: shipMesh, speed: speed, 
+            headCollision: headCollision, headP: headP, 
+            bodyCollision: bodyCollision, bodyP: bodyP,
+            tailCollision: tailCollision, tailP: tailP
+        });
+    }
+    else
+    {
+        ship = new EnemyShip({
+            type: 3,
+            mesh: shipMesh, speed: speed, 
+            headCollision: headCollision, headP: headP, 
+            bodyCollision: bodyCollision, bodyP: bodyP,
+            tailCollision: tailCollision, tailP: tailP
+        });
+    }
 
-
-    scene.add(ship.headCollision.mesh);
-    scene.add(ship.bodyCollision.mesh);
-    scene.add(ship.tailCollision.mesh);
     ship.mesh.position.x = px;
     ship.mesh.position.y = py;
+    ship.headCollision.mesh.visible = false;
+    ship.bodyCollision.mesh.visible = false;
+    ship.tailCollision.mesh.visible = false;
+ 
+    ship.atk = 1;
+    ship.hp = 10;
+
 
 //player.collisionObject = playerCollision;
     console.log(ship.headCollision);
@@ -809,6 +952,136 @@ function CreateShip1(type, px, py)
     console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
     return ship;
 }
+
+
+function CreateShip2(isPlayer, px, py)
+{
+    
+    const shipMesh = Ship2();
+
+    //const playerAngleInitial = Math.PI;
+    const speed = 0.045;
+    //const speed = 0.1; // increase speed for testing
+    const shipRadius = 24; // used for collision
+ 
+    let headP = 50;
+    let headCollisionMesh = createCollision(px + headP, py, 40, shipRadius,32);
+    let headCollision = new Collision(0, headCollisionMesh, shipRadius, 0, 0 );
+
+    let bodyP = 0;
+    let bodyCollisionMesh = createCollision(px + bodyP, py, 40, shipRadius,32);
+    let bodyCollision = new Collision(0, bodyCollisionMesh, shipRadius, 0, 0 );
+
+    let tailP = -50;
+    let tailCollisionMesh = createCollision(px + tailP, py, 40, shipRadius,32);
+    let tailCollision = new Collision(0, tailCollisionMesh, shipRadius, 0, 0 );
+    scene.add(shipMesh);
+    
+    let ship
+    if (isPlayer)
+    {
+        ship = new Ship({
+            type: 2,
+            mesh: shipMesh, speed: speed, 
+            headCollision: headCollision, headP: headP, 
+            bodyCollision: bodyCollision, bodyP: bodyP,
+            tailCollision: tailCollision, tailP: tailP
+        });
+    }
+    else
+    {
+        ship = new EnemyShip({
+            type: 2,
+            mesh: shipMesh, speed: speed, 
+            headCollision: headCollision, headP: headP, 
+            bodyCollision: bodyCollision, bodyP: bodyP,
+            tailCollision: tailCollision, tailP: tailP
+        });
+    }
+
+    ship.headCollision.mesh.visible = false;
+    ship.bodyCollision.mesh.visible = false;
+    ship.tailCollision.mesh.visible = false;
+  
+    ship.mesh.position.x = px;
+    ship.mesh.position.y = py;
+
+    ship.atk = 1;
+    ship.hp = 7;
+
+//player.collisionObject = playerCollision;
+    console.log(ship.headCollision);
+    let shipCollisionPosition = new THREE.Vector3();
+    ship.headCollision.mesh.getWorldPosition( shipCollisionPosition);
+
+    console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
+    return ship;
+}
+
+function CreateShip1(isPlayer, px, py)
+{
+    
+    const shipMesh = Ship1();
+
+    //const playerAngleInitial = Math.PI;
+    const speed = 0.055;
+    //const speed = 0.1; // increase speed for testing
+    const shipRadius = 20; // used for collision
+ 
+    let headP = 40;
+    let headCollisionMesh = createCollision(px + headP, py, 40, shipRadius,32);
+    let headCollision = new Collision(0, headCollisionMesh, shipRadius, 0, 0 );
+
+    let bodyP = 0;
+    let bodyCollisionMesh = createCollision(px + bodyP, py, 40, shipRadius,32);
+    let bodyCollision = new Collision(0, bodyCollisionMesh, shipRadius, 0, 0 );
+
+    let tailP = -40;
+    let tailCollisionMesh = createCollision(px + tailP, py, 40, shipRadius,32);
+    let tailCollision = new Collision(0, tailCollisionMesh, shipRadius, 0, 0 );
+    scene.add(shipMesh);
+    
+    let ship;
+    if (isPlayer)
+    {
+        ship = new Ship({
+            type: 1,
+            mesh: shipMesh, speed: speed, 
+            headCollision: headCollision, headP: headP, 
+            bodyCollision: bodyCollision, bodyP: bodyP,
+            tailCollision: tailCollision, tailP: tailP
+        });
+    }
+    else
+    {
+        ship = new EnemyShip({
+            type: 1,
+            mesh: shipMesh, speed: speed, 
+            headCollision: headCollision, headP: headP, 
+            bodyCollision: bodyCollision, bodyP: bodyP,
+            tailCollision: tailCollision, tailP: tailP
+        });
+    }
+
+    ship.headCollision.mesh.visible = false;
+    ship.bodyCollision.mesh.visible = false;
+    ship.tailCollision.mesh.visible = false;
+
+    ship.mesh.position.x = px;
+    ship.mesh.position.y = py;
+
+    ship.atk = 1;
+    ship.hp = 5;
+
+//player.collisionObject = playerCollision;
+    console.log(ship.headCollision);
+    let shipCollisionPosition = new THREE.Vector3();
+    ship.headCollision.mesh.getWorldPosition( shipCollisionPosition);
+
+    console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
+    return ship;
+}
+
 
 
 function PlayerCannonBallProcess(timeDelta)
@@ -842,7 +1115,7 @@ function render()
 	renderer.render( scene, camera );
 	requestAnimationFrame(render);
 }
-function Ship1() 
+function Ship3() 
 {
 	const ship = new THREE.Group();
 
@@ -1710,7 +1983,7 @@ function Ship2(){
     return ship;
 };
 
-function Ship3(){
+function Ship1(){
     const ship = new THREE.Group();
     //main ship
     var mainwidth = 50;
@@ -2130,11 +2403,25 @@ function addRandomShip(centerX, centerY, minimumRange, maximumRange)
 
 function addShip(centerX, centerY, iX, iY)
 {
-    let ship = CreateShip1(1, centerX +iX, centerY + iY);
-
+    const meshTypes = ["ship1", "ship2", "ship3"];
+    let type = pickRandom(meshTypes);
+    let ship;
+    if (type == "ship1")
+    {
+        ship = CreateShip1(false, centerX +iX, centerY + iY);
+    }
+    else if (type == "ship2")
+    {
+        ship = CreateShip2(false, centerX +iX, centerY + iY);
+    }
+    else if (type == "ship3")
+    {
+        ship = CreateShip3(false, centerX +iX, centerY + iY);
+    }
     const randomAngle = randomR(0, 2*Math.PI);
     ship.angle += randomAngle;
     ship.mesh.rotation.z -= randomAngle;
+  
    // ship.headCollision.mesh.position.x = ship.mesh.position.x+ ship.headP*Math.cos(-ship.angle);
     //ship.headCollision.mesh.position.y = ship.mesh.position.y+ ship.headP*Math.sin(-ship.angle);
     enemyShip.push(ship);
@@ -2295,7 +2582,7 @@ function createCollision(iX, iY, iZ, r, c)
     collision.position.y = iY;
     collision.position.z = iZ;
     // hide collision
-    //collision.visible = false;
+    collision.visible = false;
     return collision;
 }
 
