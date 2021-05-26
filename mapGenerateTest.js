@@ -236,10 +236,7 @@ class Ship
 		    })
 		
 	    })
-	    if (!foundCollider)
-	    {
-	    	this.isHeadCollision = false;
-	    }
+        return foundCollider;
     }
 
     Shoot(list, timeDelta)
@@ -685,9 +682,13 @@ class EnemyShip extends Ship
         isShootLeft = false,
         isShootRight = false,
         currentCollider = undefined,
-        isCooldown = false,
-        timeCoolDown = 1000,
-        cooldownTimer = 1000,
+        isCooldown1 = false,
+        isCooldown2 = false,
+        isCooldown3 = false,
+        timeCoolDown = 2200,
+        cooldownTimer1 = 1000,
+        cooldownTimer2 =1000,
+        cooldownTimer3 =1000,
         detectRadius = 1000,
         isDetect = false,
         shootRadius = 150,
@@ -699,8 +700,8 @@ class EnemyShip extends Ship
             bodyP: bodyP, tailCollision: tailCollision, isTailCollision: isTailCollision, tailP: tailP, 
             collisionRadius: collisionRadius, accelerate: accelerate, decelerate: decelerate, turnleft: turnLeft, 
             turnRight: turnRight, cannon: cannon, isShootMid: isShootMid, isShootLeft: isShootLeft, 
-            isShootRight: isShootRight, currentCollider: currentCollider, isCoolDown: isCooldown, 
-            timeCoolDown: timeCoolDown, cooldownTimer: cooldownTimer});
+            isShootRight: isShootRight, currentCollider: currentCollider, isCoolDown1: isCooldown1, isCoolDown2: isCooldown2, isCooldown3: isCooldown3,
+            timeCoolDown: timeCoolDown, cooldownTimer1: cooldownTimer1, cooldownTimer2: cooldownTimer2, cooldownTimer3: cooldownTimer3});
         this.detectRadius = detectRadius;
         this.isDetect = isDetect;
         this.shootRadius = shootRadius;    
@@ -775,7 +776,7 @@ let enemyShip = [];
 let playerCannonBall = [];
 let enemyCannonBall = [];
 
-let player = CreateShip3(true, 0, 0);
+let player = CreateShip1(true, 0, 0);
 
 //player.speed = 0.05;
 
@@ -970,32 +971,16 @@ function animation(timestamp)
 	const timeDelta = timestamp - lastTimestamp;
    
     PlayerAnimation(timeDelta);
+   
     camera.position.x = player.mesh.position.x;
 	camera.position.y = player.mesh.position.y + offsetY;
     EnemyAnimation(timeDelta);
     CheckColliderPlayerCannon();
 
-    CheckColliderPvE(timeDelta);   
+    
+   // CheckColliderEvE(timeDelta);
 	UpdateMap(tileMapSize);
     LevelUp();
-
-/*	const laps = Math.floor(Math.abs(playerAngleMoved) / (Math.PI *2));
-
-	if (laps != score)
-	{
-		score = laps;
-		scoreElement.innerText = score;
-	}
-    */
-/*	
-	if (otherVehicles.length < (laps + 1)/ 5)
-	{
-		addVehicles();
-	}
-
-	moveOtherVehicles(timeDelta);
-	hitDetection();
-    */
 
 	renderer.render(scene, camera);
 	lastTimestamp = timestamp;
@@ -1024,12 +1009,78 @@ function LevelUp()
     }
 }
 
-function CheckColliderPvE(timeDelta)
+function CheckColliderOvA(thisShip, otherShip)
 {
-    for (let i=0; i<enemyShip.length; i++)
-    {
+    let playerHeadCollisionPosition = new THREE.Vector3();
+    thisShip.headCollision.mesh.getWorldPosition( playerHeadCollisionPosition);
+    let playerBodyCollisionPosition = new THREE.Vector3();
+    thisShip.bodyCollision.mesh.getWorldPosition( playerBodyCollisionPosition);
+    let playerTailCollisionPosition = new THREE.Vector3();
+    thisShip.tailCollision.mesh.getWorldPosition( playerTailCollisionPosition);
+    let collisionH, collisionB, collisionT; // distance radius thisHead with other
+    let foundCollider = false;
+    otherShip.forEach((enemy) => {
+        if (enemy != thisShip)
+        {
+            let enemyHeadCollisionPosition = new THREE.Vector3();
+            enemy.headCollision.mesh.getWorldPosition( enemyHeadCollisionPosition ); 
+    
+            let enemyBodyCollisionPosition = new THREE.Vector3();
+            enemy.bodyCollision.mesh.getWorldPosition( enemyBodyCollisionPosition ); 
+    
+            let enemyTailCollisionPosition = new THREE.Vector3();
+            enemy.tailCollision.mesh.getWorldPosition( enemyTailCollisionPosition ); 
+     
+            
+            collisionH = Distance(
+               playerHeadCollisionPosition.x, playerHeadCollisionPosition.y, 
+                enemyHeadCollisionPosition.x, enemyHeadCollisionPosition.y
+            );
+            
+                   
+            collisionB = Distance(
+                playerHeadCollisionPosition.x, playerHeadCollisionPosition.y, 
+                 enemyBodyCollisionPosition.x, enemyBodyCollisionPosition.y
+            );
+    
+                    
+            collisionT = Distance(
+                playerHeadCollisionPosition.x, playerHeadCollisionPosition.y, 
+                 enemyTailCollisionPosition.x, enemyTailCollisionPosition.y
+            );
+    
+    
+            if (collisionH<thisShip.headCollision.r+ enemy.headCollision.r)
+            {
+                setHeadCollider(thisShip, enemy.headCollision, collisionH);
+                foundCollider = true;
+            }
+    
+            if (collisionB<thisShip.headCollision.r+enemy.bodyCollision.r)
+            {
+                setHeadCollider(thisShip, enemy.bodyCollision, collisionB);
+                foundCollider = true;
+            }
+    
+            if (collisionT<thisShip.headCollision.r+enemy.tailCollision.r)
+            {
+                setHeadCollider(thisShip, enemy.tailCollision, collisionT);
+                foundCollider = true;
+            }
+        }
+       
+    });
 
-    }
+    return foundCollider;
+
+}
+
+function setHeadCollider(ship, shipCollider, collisionR)
+{
+    console.log("CollisionDetect");
+    ship.isHeadCollision = true;
+    ship.collisionRadius = collisionR;
+    ship.currentCollider = shipCollider;
 }
 
 function CheckColliderPlayerCannon()
@@ -1097,7 +1148,13 @@ function IsCannonBallHitShip(cannonBall, ship)
 
 function PlayerAnimation(timeDelta)
 {
-    player.ShipColliderCheck();
+    let colliderCheck;
+    player.isHeadCollision = player.ShipColliderCheck();
+    colliderCheck = CheckColliderOvA(player, enemyShip);
+    if (!player.isHeadCollision)
+    {
+        player.isHeadCollision = colliderCheck;
+    }
 	player.MoveShip(timeDelta);
     player.Shoot(playerCannonBall, timeDelta);
 	player.CoolDownMid(timeDelta);
@@ -1118,7 +1175,8 @@ function EnemyAnimation(timeDelta)
         }
         else
         {
-            enemyShip[i].ShipColliderCheck();
+            let colliderCheck;
+            enemyShip[i].isHeadCollision = enemyShip[i].ShipColliderCheck();
             enemyShip[i].MoveShip(timeDelta);
             enemyShip[i].Shoot(enemyCannonBall, timeDelta);
             enemyShip[i].CoolDownMid(timeDelta); 
@@ -1192,7 +1250,6 @@ function CreateShip3(isPlayer, px, py)
     console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
     return ship;
 }
-
 
 function CreateShip2(isPlayer, px, py)
 {
@@ -1322,8 +1379,6 @@ function CreateShip1(isPlayer, px, py)
     return ship;
 }
 
-
-
 function PlayerCannonBallProcess(timeDelta)
 {
     for (let i = playerCannonBall.length-1; i>-1; i--) 
@@ -1344,17 +1399,11 @@ function EnemyCannonBallProcess(timeDelta)
     }
 }
 
-
 function getDistance(cordinate1, cordinate2)
 {
 	return Math.sqrt((cordinate2.x - cordinate1.x)**2 + (cordinate2.y - cordinate1.y)**2);
 }
 
-function render()
-{
-	renderer.render( scene, camera );
-	requestAnimationFrame(render);
-}
 function Ship3() 
 {
 	const ship = new THREE.Group();
@@ -2221,7 +2270,7 @@ function Ship2(){
     cannon_5.position.z = 29;
     ship.add(cannon_5);
     return ship;
-};
+}
 
 function Ship1(){
     const ship = new THREE.Group();
@@ -2397,37 +2446,13 @@ function Ship1(){
     rightRailing.position.z = 26;
     ship.add(rightRailing);
     return ship;
-};
-
-function Wheel() {
-	const wheel = new THREE.Mesh(
-		new THREE.BoxBufferGeometry(12, 33, 12),
-		new THREE.MeshLambertMaterial({color: 0x333333})
-	);
-	wheel.position.z = 6;
-	return wheel;
 }
+
 
 function pickRandom(array)
 {
 	return array[Math.floor(Math.random()* array.length)];
 }
-
-function getCarFrontTexture()
-{
-	const canvas = document.createElement("canvas");
-	canvas.width = 64;
-	canvas.height = 32;
-	const context = canvas.getContext("2d");
-	context.fillStyle = "#ffffff";
-	context.fillRect(0, 0, 64, 32);
-	context.fillStyle = "#666666";
-	context.fillRect(8, 8, 48, 24);
-
-	return new THREE.CanvasTexture(canvas);
-}
-
-
 
 function getSeaMarkings(mapWidth, mapHeight)
 {
@@ -2494,111 +2519,9 @@ function getSeaMarkings(mapWidth, mapHeight)
 	return new THREE.CanvasTexture(canvas);
 }
 
-function getLeftIsland() {
-	const islandLeft = new THREE.Shape();
-  
-	islandLeft.absarc(
-	  -arcCenterX,
-	  0,
-	  innerTrackRadius,
-	  arcAngle1,
-	  -arcAngle1,
-	  false
-	);
-  
-	islandLeft.absarc(
-	  arcCenterX,
-	  0,
-	  outerTrackRadius,
-	  Math.PI + arcAngle2,
-	  Math.PI - arcAngle2,
-	  true
-	);
-	
-  
-	return islandLeft;
-  }
-  
-  function getMiddleIsland() {
-	const islandMiddle = new THREE.Shape();
-  
-	islandMiddle.absarc(
-	  -arcCenterX,
-	  0,
-	  innerTrackRadius,
-	  arcAngle3,
-	  -arcAngle3,
-	  true
-	);
-  
-	islandMiddle.absarc(
-	  arcCenterX,
-	  0,
-	  innerTrackRadius,
-	  Math.PI + arcAngle3,
-	  Math.PI - arcAngle3,
-	  true
-	);
-  
-	return islandMiddle;
-  }
-  
-   function getRightIsland() {
-	const islandRight = new THREE.Shape();
-  
-	islandRight.absarc(
-	  arcCenterX,
-	  0,
-	  innerTrackRfunctionadius,
-	  Math.PI - arcAngle1,
-	  Math.PI + arcAngle1,
-	  true
-	);
-  
-	islandRight.absarc(
-	  -arcCenterX,
-	  0,
-	  outerTrackRadius,
-	  -arcAngle2,
-	  arcAngle2,
-	  false
-	);
-  
-	return islandRight;
-  }
-
-
-  function getOuterField(mapWidth, mapHeight) {
-	const field = new THREE.Shape();
-  
-	field.moveTo(-mapWidth / 2, -mapHeight / 2);
-	field.lineTo(0, -mapHeight / 2);
-  
-	field.absarc(-arcCenterX, 0, outerTrackRadius, -arcAngle4, arcAngle4, true);
-  
-	field.absarc(
-	  arcCenterX,
-	  0,
-	  outerTrackRadius,
-	  Math.PI - arcAngle4,
-	  Math.PI + arcAngle4,
-	  true
-	);
-  
-	field.lineTo(0, -mapHeight / 2);
-	field.lineTo(mapWidth / 2, -mapHeight / 2);
-	field.lineTo(mapWidth / 2, mapHeight / 2);
-	field.lineTo(-mapWidth / 2, mapHeight / 2);
-  
-	return field;
-  }
   
 function renderMap(mapWidth, mapHeight) 
 {
-
-	//const mesh = Mesh1(0,0);
-	
-	//scene.add(mesh);
     const minimumRange = 1;
     const maximumRange = 100;
  
@@ -2683,23 +2606,6 @@ function Sea0(centerX, centerY, iX, iY)
     mesh.position.y = centerY;
     return mesh;
 
-}
-
-function Sea1(centerX, centerY, iX, iY) 
-{
-	const mesh = new THREE.Group();
-    const seaMarkingsTexture = getSeaMarkings(tileMapSize, tileMapSize);
-	const planeGeometry = new THREE.PlaneBufferGeometry(tileMapSize, tileMapSize);
-	const planeMaterial = new THREE.MeshLambertMaterial({
-        map: seaMarkingsTexture,
-    });
-	
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    mesh.add(plane);
-
-    
-	
-	return mesh;
 }
 
 function getIsLand1(centerX, centerY) {
@@ -2825,9 +2731,6 @@ function createCollision(iX, iY, iZ, r, c)
     collision.visible = false;
     return collision;
 }
-
-
-
 
 function Distance(x1, y1, x2, y2)
 {
