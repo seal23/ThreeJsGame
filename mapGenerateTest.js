@@ -82,8 +82,10 @@ class Ship
         isCooldown1 = false,
         isCooldown2 = false,
         isCooldown3 = false,
-        timeCoolDown = 1000,
-        cooldownTimer = 1000
+        timeCoolDown = 2200,
+        cooldownTimer1 = 1000,
+        cooldownTimer2 = 1000,
+        cooldownTimer3 = 1000
     }
     ){
         this.type = type;
@@ -116,8 +118,9 @@ class Ship
         this.isCooldown2 = isCooldown2;
         this.isCooldown3 = isCooldown3;
         this.timeCooldown = timeCoolDown;
-        this.cooldownTimer = cooldownTimer;
-        
+        this.cooldownTimer1 = cooldownTimer1;
+        this.cooldownTimer2 = cooldownTimer2;
+        this.cooldownTimer3 = cooldownTimer3;
     }
 
     set collisionObject (collision) {
@@ -278,7 +281,7 @@ class Ship
                 this.PushCannonBall(cannonBall);
             
                 this.isCooldown1 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer1 = this.timeCooldown;
             }
             this.isShootMid = false;
         }
@@ -305,7 +308,7 @@ class Ship
                 scene.add(cannonBall_1.mesh);
                 this.PushCannonBall(cannonBall_1);
                 this.isCooldown2 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer2 = this.timeCooldown;
             }
             this.isShootRight = false;
         }
@@ -332,7 +335,7 @@ class Ship
                 scene.add(cannonBall.mesh);
                 this.PushCannonBall(cannonBall);
                 this.isCooldown3 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer3 = this.timeCooldown;
             }
             this.isShootLeft = false;
         }
@@ -362,7 +365,7 @@ class Ship
                 this.PushCannonBall(cannonBall);
             
                 this.isCooldown1 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer1 = this.timeCooldown;
             }
             this.isShootMid = false;
         }
@@ -407,7 +410,7 @@ class Ship
                 scene.add(cannonBall_2.mesh);
                 this.PushCannonBall(cannonBall_2);
                 this.isCooldown2 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer2 = this.timeCooldown;
             }
             this.isShootRight = false;
         }
@@ -452,7 +455,7 @@ class Ship
                 scene.add(cannonBall_2.mesh);
                 this.PushCannonBall(cannonBall_2);
                 this.isCooldown3 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer3 = this.timeCooldown;
             }
             this.isShootLeft = false;
         }
@@ -482,7 +485,7 @@ class Ship
                 this.PushCannonBall(cannonBall);
             
                 this.isCooldown1 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer1 = this.timeCooldown;
             }
             this.isShootMid = false;
         }
@@ -545,7 +548,7 @@ class Ship
                 scene.add(cannonBall_3.mesh);
                 this.PushCannonBall(cannonBall_3);
                 this.isCooldown2 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer2 = this.timeCooldown;
             }
             this.isShootRight = false;
         }
@@ -608,7 +611,7 @@ class Ship
                 scene.add(cannonBall_3.mesh);
                 this.PushCannonBall(cannonBall_3);
                 this.isCooldown3 = true;
-                this.cooldownTimer = this.timeCooldown;
+                this.cooldownTimer3 = this.timeCooldown;
             }
             this.isShootLeft = false;
         }
@@ -618,8 +621,8 @@ class Ship
     {
         if (this.isCooldown1)
         {
-            this.cooldownTimer -= timeDelta;
-            if (this.cooldownTimer<0)
+            this.cooldownTimer1 -= timeDelta;
+            if (this.cooldownTimer1<0)
             {
                 this.isCooldown1 = false;
             }
@@ -627,8 +630,8 @@ class Ship
 
         if (this.isCooldown2)
         {
-            this.cooldownTimer -= timeDelta;
-            if (this.cooldownTimer<0)
+            this.cooldownTimer2 -= timeDelta;
+            if (this.cooldownTimer2<0)
             {
                 this.isCooldown2 = false;
             }
@@ -636,8 +639,8 @@ class Ship
 
         if (this.isCooldown3)
         {
-            this.cooldownTimer -= timeDelta;
-            if (this.cooldownTimer<0)
+            this.cooldownTimer3 -= timeDelta;
+            if (this.cooldownTimer3<0)
             {
                 this.isCooldown3 = false;
             }
@@ -772,7 +775,7 @@ let enemyShip = [];
 let playerCannonBall = [];
 let enemyCannonBall = [];
 
-let player = CreateShip1(true, 0, 0);
+let player = CreateShip3(true, 0, 0);
 
 //player.speed = 0.05;
 
