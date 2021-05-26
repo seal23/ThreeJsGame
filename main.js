@@ -223,7 +223,7 @@ class Ship
 			
 		    	if (collisionR<this.headCollision.r+collision.r)
 		    	{
-			    	console.log("CollisionDetect");
+			    	//console.log("CollisionDetect");
 			    	this.isHeadCollision = true;
 			    	this.collisionRadius = collisionR;
 			    	this.currentCollider = collision;
@@ -236,10 +236,7 @@ class Ship
 		    })
 		
 	    })
-	    if (!foundCollider)
-	    {
-	    	this.isHeadCollision = false;
-	    }
+        return foundCollider;
     }
 
     Shoot(list, timeDelta)
@@ -694,7 +691,7 @@ class EnemyShip extends Ship
         cooldownTimer3 =1000,
         detectRadius = 1000,
         isDetect = false,
-        shootRadius = 150,
+        shootRadius = 300,
         isInRange = false
     })
     {
@@ -719,6 +716,7 @@ class EnemyShip extends Ship
         if (distance<this.detectRadius)
         {
             this.isDetect = true;
+           // console.log("PlayerDetected");
         }
         else 
         {
@@ -734,6 +732,7 @@ class EnemyShip extends Ship
         if (distance<this.shootRadius)
         {
             this.isInRange = true;
+          //  console.log("PlayerInRange");
         }
         else 
         {
@@ -805,9 +804,9 @@ const arcAngle2 = Math.asin(deltaY / outerTrackRadius);
 
 const arcCenterX = (Math.cos(arcAngle1)* innerTrackRadius + Math.cos(arcAngle2)*outerTrackRadius) / 2;
 
-const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
+//const arcAngle3 = Math.acos(arcCenterX / innerTrackRadius);
 
-const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
+//const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
 let map = [];
 const tileMapSize = 1200; // TilesMapSize
@@ -833,33 +832,21 @@ for (let i = 0; i < generator.length; i++)
   }
 }
 console.log(generator[500][500]);
-
-renderMap(cameraWidth, cameraHeight);
-UpdateMap(tileMapSize);
-
-const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setSize( window.innerWidth, window.innerHeight );
-//renderer.render(scene, camera);
-
-
-document.body.appendChild( renderer.domElement );
-
 let ready;
-let playerAngleMoved;
+const hpElement = document.getElementById("hp");
 const scoreElement = document.getElementById("score");
-let otherVehicles = [];
 
 let lastTimestamp;
 let cannonSpeed = 0.2;
 let timeCannonMid = 1500;
 
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setSize( window.innerWidth, window.innerHeight );
+document.body.appendChild( renderer.domElement );
+
+//renderMap(cameraWidth, cameraHeight);
 reset ();
-
-// window.addEventListener("mousedown", onMouseDown);
-
-// function onMouseDown() {
-//     player.isShootMid = true;
-// }
+UpdateMap(tileMapSize);
 
 window.addEventListener("keydown", function (event){
 	if (event.key =="ArrowUp") {
@@ -927,28 +914,49 @@ window.addEventListener("keyup", function (event){
 
 });
 
-renderer.render(scene, camera );
-
-
-
-
-
 
 function reset()
 {
-	//playerAngleMoved = 0;
+    const minimumRange = 0;
+    const maximumRange = tileMapSize/2-200;
     player.MoveShip(0);
 	score = 0;
-	scoreElement.innerText = score;
+    exp = 0;
+    hpElement.innerText = "hp: " + player.hp;
+	scoreElement.innerText = "score: " + score;
 	lastTimestamp = undefined;
-/*
-	//Remove other vehicles
-	otherVehicles.forEach((vehicle) => {
-		scene.remove(vehicle.mesh);
-	});
+    for (let i = 0; i < generator.length; i++) 
+    {
+        for (let j = 0; j < generator[i].length; j++)
+        {
+            if (generator[i][j]!=0)
+            {
+                scene.remove(tileStorage[i][j].mesh);
+                generator[i][j] = 0;
+            }
+        }
 
-	otherVehicles = [];
-    */
+    }
+    map.splice(0,map.length);
+
+    for (let i =0; i<enemyShip.length; i++)
+    {
+        scene.remove(enemyShip[i].mesh);
+    }
+
+    enemyShip.splice(0, enemyShip.length);
+    addRandomMap(0, 0, minimumRange, maximumRange, 0);
+    generator[500][500] = 1;
+    let ship = CreateShip1(true, 0, 0);
+        ship.angle = player.angle;
+        ship.mesh.rotation.z = player.mesh.rotation.z;
+        scene.remove(player.mesh);
+        player.collision = null;
+        player = null;
+        player = ship;
+   // player.mesh.position.x = 0;
+  //  player.mesh.position.y = 0;
+
 	renderer.render(scene, camera);
 	ready = true;
 }
@@ -965,7 +973,8 @@ function startGame()
 /// ANIMATION LOOP
 function animation(timestamp) 
 {
-	
+	hpElement.innerText = "hp: " + player.hp;
+	scoreElement.innerText = "score: " + score;
 	if (!lastTimestamp)
 	{
 		lastTimestamp = timestamp;
@@ -974,12 +983,14 @@ function animation(timestamp)
 	const timeDelta = timestamp - lastTimestamp;
    
     PlayerAnimation(timeDelta);
+   
     camera.position.x = player.mesh.position.x;
 	camera.position.y = player.mesh.position.y + offsetY;
     EnemyAnimation(timeDelta);
     CheckColliderPlayerCannon();
-
-    CheckColliderPvE(timeDelta);   
+    CheckColliderEnemyCannon();
+    
+   // CheckColliderEvE(timeDelta);
 	UpdateMap(tileMapSize);
     LevelUp();
 
@@ -1010,12 +1021,113 @@ function LevelUp()
     }
 }
 
-function CheckColliderPvE(timeDelta)
+function CheckColliderOvA(thisShip, otherShip)
 {
-    for (let i=0; i<enemyShip.length; i++)
-    {
 
+    let foundCollider = false;
+    otherShip.forEach((enemy) => {
+        if (enemy != thisShip)
+        {
+            foundCollider = CheckCollider1v1(thisShip, enemy);
+        }
+       
+    });
+
+    return foundCollider;
+
+}
+
+function CheckCollider1v1(thisShip, enemy)
+{
+    let playerHeadCollisionPosition = new THREE.Vector3();
+    thisShip.headCollision.mesh.getWorldPosition( playerHeadCollisionPosition);
+    let playerBodyCollisionPosition = new THREE.Vector3();
+    thisShip.bodyCollision.mesh.getWorldPosition( playerBodyCollisionPosition);
+    let playerTailCollisionPosition = new THREE.Vector3();
+    thisShip.tailCollision.mesh.getWorldPosition( playerTailCollisionPosition);
+
+    let collisionH, collisionB, collisionT; // distance radius thisHead with other
+    let foundCollider = false;
+    let enemyHeadCollisionPosition = new THREE.Vector3();
+    enemy.headCollision.mesh.getWorldPosition( enemyHeadCollisionPosition ); 
+    
+    let enemyBodyCollisionPosition = new THREE.Vector3();
+    
+    enemy.bodyCollision.mesh.getWorldPosition( enemyBodyCollisionPosition ); 
+    
+    let enemyTailCollisionPosition = new THREE.Vector3();
+    enemy.tailCollision.mesh.getWorldPosition( enemyTailCollisionPosition ); 
+
+    
+    collisionH = Distance(
+       playerHeadCollisionPosition.x, playerHeadCollisionPosition.y, 
+        enemyHeadCollisionPosition.x, enemyHeadCollisionPosition.y
+    );
+    
+           
+    collisionB = Distance(
+        playerHeadCollisionPosition.x, playerHeadCollisionPosition.y, 
+         enemyBodyCollisionPosition.x, enemyBodyCollisionPosition.y
+    );
+
+            
+    collisionT = Distance(
+        playerHeadCollisionPosition.x, playerHeadCollisionPosition.y, 
+         enemyTailCollisionPosition.x, enemyTailCollisionPosition.y
+    );
+
+
+    if (collisionH<thisShip.headCollision.r+ enemy.headCollision.r)
+    {
+        setHeadCollider(thisShip, enemy.headCollision, collisionH);
+        foundCollider = true;
     }
+
+    if (collisionB<thisShip.headCollision.r+enemy.bodyCollision.r)
+    {
+        setHeadCollider(thisShip, enemy.bodyCollision, collisionB);
+        foundCollider = true;
+    }
+
+    if (collisionT<thisShip.headCollision.r+enemy.tailCollision.r)
+    {
+        setHeadCollider(thisShip, enemy.tailCollision, collisionT);
+        foundCollider = true;
+    }
+    return foundCollider;
+}
+
+function CheckEvECollider()
+{
+    for (let i =0; i<enemyShip.length-1; i++)
+    {
+        let foundCollider = CheckCollider1v1(enemyShip[i], player);
+        enemyShip[i].isHeadCollision = foundCollider;
+    }
+ 
+    for (let i =0; i<enemyShip.length-1; i++)
+    {
+        for (let j=i+1; j<enemyShip.length; j++)
+        {
+            let foundCollider1 =false;
+            let foundCollider2 = false;
+            foundCollider1 = CheckCollider1v1(enemyShip[i], enemyShip[j]);
+            foundCollider2 = CheckCollider1v1(enemyShip[j], enemyShip[i]);
+            if (!enemyShip[i].isHeadCollision)
+                enemyShip[i].isHeadCollision = foundCollider1;
+            if (!enemyShip[j].isHeadCollision)
+                enemyShip[j].isHeadCollision = foundCollider2;   
+
+        }
+    }
+}
+
+function setHeadCollider(ship, shipCollider, collisionR)
+{
+    console.log("CollisionDetect");
+    ship.isHeadCollision = true;
+    ship.collisionRadius = collisionR;
+    ship.currentCollider = shipCollider;
 }
 
 function CheckColliderPlayerCannon()
@@ -1031,11 +1143,11 @@ function CheckColliderPlayerCannon()
             {
                 console.log("hit enemy");
                 enemyShip[j].hp -= player.atk;
-                console.log("hp: ", enemyShip[j].hp);
+                console.log("hp: " + enemyShip[j].hp);
                 if (enemyShip[j].hp < 1)
                 {
-                    score += 1;
-                    scoreElement.innerText = score;
+                    score += enemyShip[j].type;
+                    scoreElement.innerText = "score: " + score;
                     exp += enemyShip[j].type;
                     console.log("exp: " + exp);
                     scene.remove(enemyShip[j].mesh);
@@ -1049,6 +1161,31 @@ function CheckColliderPlayerCannon()
         {
             scene.remove(playerCannonBall[i].mesh);
             playerCannonBall.splice(i,1);
+        }
+        
+    }
+}
+
+function CheckColliderEnemyCannon()
+{
+    for (let i =enemyCannonBall.length - 1; i>-1; i--)
+    {
+        let isHit =false;
+        if (IsCannonBallHitShip(enemyCannonBall[i], player))
+            isHit = true;
+        if (isHit)
+        {
+            console.log("hit player");
+            player.hp -= 1;
+            console.log("hp: " + player.hp);
+            scene.remove(enemyCannonBall[i].mesh);
+            enemyCannonBall.splice(i,1);
+            if (player.hp < 1)
+            {
+             
+                reset();
+            }
+
         }
         
     }
@@ -1083,7 +1220,13 @@ function IsCannonBallHitShip(cannonBall, ship)
 
 function PlayerAnimation(timeDelta)
 {
-    player.ShipColliderCheck();
+    let colliderCheck;
+    player.isHeadCollision = player.ShipColliderCheck();
+    colliderCheck = CheckColliderOvA(player, enemyShip);
+    if (!player.isHeadCollision)
+    {
+        player.isHeadCollision = colliderCheck;
+    }
 	player.MoveShip(timeDelta);
     player.Shoot(playerCannonBall, timeDelta);
 	player.CoolDownMid(timeDelta);
@@ -1092,6 +1235,7 @@ function PlayerAnimation(timeDelta)
 
 function EnemyAnimation(timeDelta)
 {
+    CheckEvECollider();
     for (let i = enemyShip.length-1; i>-1; i--)
     {
         if (Distance(
@@ -1104,14 +1248,35 @@ function EnemyAnimation(timeDelta)
         }
         else
         {
-            enemyShip[i].ShipColliderCheck();
+          
+            let colliderCheck = enemyShip[i].ShipColliderCheck();
+            if (!enemyShip[i].isHeadCollision)
+                enemyShip[i].isHeadCollision = colliderCheck;
             enemyShip[i].MoveShip(timeDelta);
             enemyShip[i].Shoot(enemyCannonBall, timeDelta);
             enemyShip[i].CoolDownMid(timeDelta); 
-            EnemyCannonBallProcess(timeDelta);
+            enemyShip[i].PlayerDetector(player);
+            enemyShip[i].PlayerInRangeDetector(player);
+            if (enemyShip[i].isInRange)
+            {
+                enemyShip[i].isShootLeft = true;
+                enemyShip[i].isShootRight = true;
+                enemyShip[i].isShootMid = true;
+            }
+            else
+            {
+                enemyShip[i].isShootLeft = false;
+                enemyShip[i].isShootRight = false;
+                enemyShip[i].isShootMid = false;
+            }
+            enemyShip[i].Shoot();
+            
         }
        
     }
+
+    EnemyCannonBallProcess(timeDelta);
+  
 }
 
 function CreateShip3(isPlayer, px, py)
@@ -1178,7 +1343,6 @@ function CreateShip3(isPlayer, px, py)
     console.log("playerCollision: " + shipCollisionPosition.x + " " + shipCollisionPosition.y);
     return ship;
 }
-
 
 function CreateShip2(isPlayer, px, py)
 {
@@ -1308,8 +1472,6 @@ function CreateShip1(isPlayer, px, py)
     return ship;
 }
 
-
-
 function PlayerCannonBallProcess(timeDelta)
 {
     for (let i = playerCannonBall.length-1; i>-1; i--) 
@@ -1330,17 +1492,11 @@ function EnemyCannonBallProcess(timeDelta)
     }
 }
 
-
 function getDistance(cordinate1, cordinate2)
 {
 	return Math.sqrt((cordinate2.x - cordinate1.x)**2 + (cordinate2.y - cordinate1.y)**2);
 }
 
-function render()
-{
-	renderer.render( scene, camera );
-	requestAnimationFrame(render);
-}
 function Ship3() 
 {
 	const ship = new THREE.Group();
@@ -1827,56 +1983,7 @@ function Ship3()
     cannon_7.position.z = 34;
     ship.add(cannon_7);
     return ship;
-	// const car = new THREE.Group();
-
-	// const backWheel = Wheel();
 	
-	// backWheel.position.x = -18;
-	// car.add(backWheel);
-	
-	// const frontWheel = Wheel();
-	
-	// frontWheel.position.x = 18;
-	// car.add(frontWheel);
-	
-	// const main = new THREE.Mesh(
-	// 	new THREE.BoxBufferGeometry(60, 30, 15),
-	// 	new THREE.MeshLambertMaterial({color: pickRandom(vehicleColors) })
-	// );
-	
-	// main.position.z = 12;
-	// car.add(main);
-	
-	// const carFrontTexture = getCarFrontTexture();
-	// carFrontTexture.center = new THREE.Vector2(0.5, 0.5);
-	// carFrontTexture.rotation = Math.PI / 2;
-
-
-	// const carBackTexture = getCarFrontTexture();
-	// carBackTexture.center = new THREE.Vector2(0.5, 0.5);
-	// carBackTexture.rotation = -Math.PI /2 ;	
-
-
-	// const carRightSideTexture = getCarSideTexture();
-
-	// const carLeftSideTexture = getCarSideTexture();
-	// carLeftSideTexture.flipY = false;
-
-
-	// const cabin = new THREE.Mesh(
-	// 	new THREE.BoxBufferGeometry(33, 24, 12), [
-	// 		new THREE.MeshLambertMaterial({ map: carFrontTexture}), // x
-	// 		new THREE.MeshLambertMaterial({map: carBackTexture}), // -x
-	// 		new THREE.MeshLambertMaterial({map: carLeftSideTexture}), // y
-	// 		new THREE.MeshLambertMaterial({map: carRightSideTexture}), // -y
-	// 		new THREE.MeshLambertMaterial({color: 0xffffff}), // top +z
-	// 		new THREE.MeshLambertMaterial({color: 0xffffff}) // bottom -z
-	// 	]);
-	// cabin.position.z = 25.5;
-	// cabin.position.x = -6;
-	// car.add(cabin);
-
-	//return car;
 }
 
 function Ship2(){
@@ -2207,7 +2314,7 @@ function Ship2(){
     cannon_5.position.z = 29;
     ship.add(cannon_5);
     return ship;
-};
+}
 
 function Ship1(){
     const ship = new THREE.Group();
@@ -2383,37 +2490,13 @@ function Ship1(){
     rightRailing.position.z = 26;
     ship.add(rightRailing);
     return ship;
-};
-
-function Wheel() {
-	const wheel = new THREE.Mesh(
-		new THREE.BoxBufferGeometry(12, 33, 12),
-		new THREE.MeshLambertMaterial({color: 0x333333})
-	);
-	wheel.position.z = 6;
-	return wheel;
 }
+
 
 function pickRandom(array)
 {
 	return array[Math.floor(Math.random()* array.length)];
 }
-
-function getCarFrontTexture()
-{
-	const canvas = document.createElement("canvas");
-	canvas.width = 64;
-	canvas.height = 32;
-	const context = canvas.getContext("2d");
-	context.fillStyle = "#ffffff";
-	context.fillRect(0, 0, 64, 32);
-	context.fillStyle = "#666666";
-	context.fillRect(8, 8, 48, 24);
-
-	return new THREE.CanvasTexture(canvas);
-}
-
-
 
 function getSeaMarkings(mapWidth, mapHeight)
 {
@@ -2480,111 +2563,9 @@ function getSeaMarkings(mapWidth, mapHeight)
 	return new THREE.CanvasTexture(canvas);
 }
 
-function getLeftIsland() {
-	const islandLeft = new THREE.Shape();
-  
-	islandLeft.absarc(
-	  -arcCenterX,
-	  0,
-	  innerTrackRadius,
-	  arcAngle1,
-	  -arcAngle1,
-	  false
-	);
-  
-	islandLeft.absarc(
-	  arcCenterX,
-	  0,
-	  outerTrackRadius,
-	  Math.PI + arcAngle2,
-	  Math.PI - arcAngle2,
-	  true
-	);
-	
-  
-	return islandLeft;
-  }
-  
-  function getMiddleIsland() {
-	const islandMiddle = new THREE.Shape();
-  
-	islandMiddle.absarc(
-	  -arcCenterX,
-	  0,
-	  innerTrackRadius,
-	  arcAngle3,
-	  -arcAngle3,
-	  true
-	);
-  
-	islandMiddle.absarc(
-	  arcCenterX,
-	  0,
-	  innerTrackRadius,
-	  Math.PI + arcAngle3,
-	  Math.PI - arcAngle3,
-	  true
-	);
-  
-	return islandMiddle;
-  }
-  
-   function getRightIsland() {
-	const islandRight = new THREE.Shape();
-  
-	islandRight.absarc(
-	  arcCenterX,
-	  0,
-	  innerTrackRfunctionadius,
-	  Math.PI - arcAngle1,
-	  Math.PI + arcAngle1,
-	  true
-	);
-  
-	islandRight.absarc(
-	  -arcCenterX,
-	  0,
-	  outerTrackRadius,
-	  -arcAngle2,
-	  arcAngle2,
-	  false
-	);
-  
-	return islandRight;
-  }
-
-
-  function getOuterField(mapWidth, mapHeight) {
-	const field = new THREE.Shape();
-  
-	field.moveTo(-mapWidth / 2, -mapHeight / 2);
-	field.lineTo(0, -mapHeight / 2);
-  
-	field.absarc(-arcCenterX, 0, outerTrackRadius, -arcAngle4, arcAngle4, true);
-  
-	field.absarc(
-	  arcCenterX,
-	  0,
-	  outerTrackRadius,
-	  Math.PI - arcAngle4,
-	  Math.PI + arcAngle4,
-	  true
-	);
-  
-	field.lineTo(0, -mapHeight / 2);
-	field.lineTo(mapWidth / 2, -mapHeight / 2);
-	field.lineTo(mapWidth / 2, mapHeight / 2);
-	field.lineTo(-mapWidth / 2, mapHeight / 2);
-  
-	return field;
-  }
   
 function renderMap(mapWidth, mapHeight) 
 {
-
-	//const mesh = Mesh1(0,0);
-	
-	//scene.add(mesh);
     const minimumRange = 1;
     const maximumRange = 100;
  
@@ -2669,23 +2650,6 @@ function Sea0(centerX, centerY, iX, iY)
     mesh.position.y = centerY;
     return mesh;
 
-}
-
-function Sea1(centerX, centerY, iX, iY) 
-{
-	const mesh = new THREE.Group();
-    const seaMarkingsTexture = getSeaMarkings(tileMapSize, tileMapSize);
-	const planeGeometry = new THREE.PlaneBufferGeometry(tileMapSize, tileMapSize);
-	const planeMaterial = new THREE.MeshLambertMaterial({
-        map: seaMarkingsTexture,
-    });
-	
-    const plane = new THREE.Mesh(planeGeometry, planeMaterial);
-    mesh.add(plane);
-
-    
-	
-	return mesh;
 }
 
 function getIsLand1(centerX, centerY) {
@@ -2812,9 +2776,6 @@ function createCollision(iX, iY, iZ, r, c)
     return collision;
 }
 
-
-
-
 function Distance(x1, y1, x2, y2)
 {
 	return Math.sqrt(Math.pow(x2-x1,2)+Math.pow(y2-y1,2));
@@ -2848,13 +2809,24 @@ function UpdateMap(size)
 	if (i<1 || i>998 || j<1 || j>998) // reset the Map when it too big
 	{
 		
-		for (let i = 0; i < generator.length; i++) 
-		{
-  			for (let j = 0; j < generator[i].length; j++)
-  			{
-	  			generator[i][j] = 0;
-  			}
-		}
+        for (let i = 0; i < generator.length; i++) 
+        {
+            for (let j = 0; j < generator[i].length; j++)
+            {
+                if (generator[i][j]!=0)
+                {
+                    scene.remove(tileStorage[i][j].mesh);
+                    generator[i][j] = 0;
+                }
+            }
+    
+        }
+        map.splice(0,map.length);
+        for (let i =0; i<enemyShip.length; i++)
+        {
+            scene.remove(enemyShip[i].mesh);
+        }
+        enemyShip.splice(0, enemyShip.length);
 		addRandomMap(0, 0, minimumRange, maximumRange, 0);
 		generator[500][500] = 1;
 		player.mesh.position.x = 0;
@@ -2950,6 +2922,8 @@ function UpdateMap(size)
         thisI = i;
         thisJ = j;
 	}
+
+	
 }
 
 
