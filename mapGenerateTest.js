@@ -153,15 +153,17 @@ class Ship
     {
         if (this.turnLeft)
         {
-            this.mesh.rotation.z += 0.01;
-            this.angle -= 0.01;
+            this.mesh.rotation.z += 0.015;
+            this.angle -= 0.015;
+            this.angle = this.angle%(Math.PI*2);
      
         }
         else 
         if (this.turnRight)
         {
-            this.mesh.rotation.z -= 0.01;
-            this.angle += 0.01;
+            this.mesh.rotation.z -= 0.015;
+            this.angle += 0.015;
+            this.angle = this.angle%(Math.PI*2);
 
         }
         this.headCollision.mesh.position.x = this.mesh.position.x + this.headP*Math.cos(-this.angle);
@@ -239,7 +241,7 @@ class Ship
         return foundCollider;
     }
 
-    Shoot(list, timeDelta)
+    Shoot()
     {
         if (this.type == 1){
             this.ShootType1();
@@ -698,16 +700,17 @@ class EnemyShip extends Ship
         cooldownTimer1 = 1000,
         cooldownTimer2 =1000,
         cooldownTimer3 =1000,
-        detectRadius = 1000,
+        detectRadius = 900,
         isDetect = false,
-        shootRadius = 300,
-        isInRange = false
+        shootRadius = 330,
+        isInRange = false,
+        playerSide = 0,
     })
     {
         super({type: type, hp: hp, atk: atk, mesh: mesh, speed: speed, angle: angle, velocity: velocity, headCollision: headCollision, 
             isHeadCollision: isHeadCollision, headP: headP, bodyCollision: bodyCollision, isBodyCollision: isBodyCollision, 
             bodyP: bodyP, tailCollision: tailCollision, isTailCollision: isTailCollision, tailP: tailP, 
-            collisionRadius: collisionRadius, accelerate: accelerate, decelerate: decelerate, turnleft: turnLeft, 
+            collisionRadius: collisionRadius, accelerate: accelerate, decelerate: decelerate, turnLeft: turnLeft, 
             turnRight: turnRight, cannon: cannon, isShootMid: isShootMid, isShootLeft: isShootLeft, 
             isShootRight: isShootRight, currentCollider: currentCollider, isCoolDown1: isCooldown1, isCoolDown2: isCooldown2, isCooldown3: isCooldown3,
             timeCoolDown: timeCoolDown, cooldownTimer1: cooldownTimer1, cooldownTimer2: cooldownTimer2, cooldownTimer3: cooldownTimer3});
@@ -715,6 +718,7 @@ class EnemyShip extends Ship
         this.isDetect = isDetect;
         this.shootRadius = shootRadius;    
         this.isInRange = isInRange;
+        this.playerSide = playerSide;
     }
 
     PlayerDetector(player)
@@ -749,6 +753,87 @@ class EnemyShip extends Ship
         }
     }
 
+    Navigator(player)
+    {
+        const ax = this.velocity.x;
+        const ay = this.velocity.y;
+        const bx = player.mesh.position.x - this.mesh.position.x;
+        const by = player.mesh.position.x - this.mesh.position.y;
+        let angle = Math.acos((ax*bx+ay*by)/(Math.sqrt(ax**2+ay**2)*Math.sqrt(bx**2+by**2)));
+        const x = player.mesh.position.x;
+        const y = player.mesh.position.y;    
+        const xa = this.mesh.position.x;
+        const ya = this.mesh.position.y;
+        const xb = xa+ax*2;
+        const yb = ya + ay*2;
+
+        const currentD = Distance(xa,ya,x,y);
+        const nextD = Distance(xb,yb,x,y);
+
+
+        const p = Math.sign((xb-xa)*(y-ya)-(yb-ya)*(x-xa));
+        this.playerSide = p; // is Player left or right
+
+       // console.log("angle: " +angle);
+        if (this.isInRange)
+        {   
+            if (angle <0.6 && nextD<=currentD)
+            {
+                this.isShootMid = true;
+            }
+
+            if (angle<Math.PI/2-0.02 || angle>Math.PI/2+0.02)
+            {
+                this.accelerate = false;
+                
+                if (p>0)
+                {
+                this.turnRight = true;
+                this.turnLeft = false;
+                }
+                else
+                {
+                    this.turnLeft = true;
+                    this.turnRight = false;
+                }
+            }
+            else 
+            {
+                this.turnLeft = false;
+                this.turnRight = false;
+                this.accelerate = true;
+            }
+            
+        }
+        else
+        if (angle>0.1 || nextD>currentD)
+        {
+            if (angle<0.6)
+            {
+                this.accelerate = true;
+            }
+            else
+                this.accelerate = false;
+            if (p>0)
+                {
+                    this.turnLeft = true;
+                    this.turnRight = false;
+                }
+            else if (p<0)
+                {
+                    this.turnRight = true;
+                    this.turnLeft = false;
+                }   
+            
+        }
+        else 
+        {
+            this.accelerate = true;
+            this.turnLeft = false;
+            this.turnRight = false;
+        }
+    }
+
     PushCannonBall(cannonBall)
     {
         enemyCannonBall.push(cannonBall);
@@ -758,7 +843,7 @@ class EnemyShip extends Ship
 
 
 const scene = new THREE.Scene();
-const vehicleColors = [0xa52523, 0xbdb638, 0x78b14b];
+//const vehicleColors = [0xa52523, 0xbdb638, 0x78b14b];
 
 // camera
 
@@ -855,7 +940,7 @@ let cannonSpeed = 0.2;
 let timeCannonMid = 1500;
 
 const renderer = new THREE.WebGLRenderer({antialias: true});
-renderer.setSize( window.innerWidth, window.innerHeight );
+renderer.setSize( window.innerWidth/1.07, window.innerHeight/1.07 );
 document.body.appendChild( renderer.domElement );
 
 //renderMap(cameraWidth, cameraHeight);
@@ -1007,7 +1092,6 @@ function reset()
         player = ship;
    // player.mesh.position.x = 0;
   //  player.mesh.position.y = 0;
-
 	renderer.render(scene, camera);
 	ready = true;
 }
@@ -1176,7 +1260,7 @@ function CheckEvECollider()
 
 function setHeadCollider(ship, shipCollider, collisionR)
 {
-    console.log("CollisionDetect");
+
     ship.isHeadCollision = true;
     ship.collisionRadius = collisionR;
     ship.currentCollider = shipCollider;
@@ -1293,7 +1377,7 @@ function PlayerAnimation(timeDelta)
         player.isHeadCollision = colliderCheck;
     }
 	player.MoveShip(timeDelta);
-    player.Shoot(playerCannonBall, timeDelta);
+    player.Shoot();
 	player.CoolDownMid(timeDelta);
     PlayerCannonBallProcess(timeDelta);
 }
@@ -1317,22 +1401,32 @@ function EnemyAnimation(timeDelta)
             let colliderCheck = enemyShip[i].ShipColliderCheck();
             if (!enemyShip[i].isHeadCollision)
                 enemyShip[i].isHeadCollision = colliderCheck;
+         
             enemyShip[i].MoveShip(timeDelta);
-            enemyShip[i].Shoot(enemyCannonBall, timeDelta);
+           // enemyShip[i].Shoot(enemyCannonBall, timeDelta);
             enemyShip[i].CoolDownMid(timeDelta); 
             enemyShip[i].PlayerDetector(player);
+            if (enemyShip[i].isDetect)
+            {
+                enemyShip[i].Navigator(player);
+            }
             enemyShip[i].PlayerInRangeDetector(player);
             if (enemyShip[i].isInRange)
             {
-                enemyShip[i].isShootLeft = true;
-                enemyShip[i].isShootRight = true;
-                enemyShip[i].isShootMid = true;
-            }
-            else
-            {
-                enemyShip[i].isShootLeft = false;
-                enemyShip[i].isShootRight = false;
-                enemyShip[i].isShootMid = false;
+                console.log("sign: "+ enemyShip[i].playerSide);
+                if (enemyShip[i].playerSide>0.8)
+                {
+                    enemyShip[i].isShootLeft = true;
+                }
+                else if (enemyShip[i].playerSide<-0.8)
+                {
+                    enemyShip[i].isShootRight = true;
+                }
+                else 
+                {
+                    enemyShip[i].isShootMid = true;
+                }
+
             }
             enemyShip[i].Shoot();
             
