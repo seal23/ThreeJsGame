@@ -758,7 +758,7 @@ class EnemyShip extends Ship
         const ax = this.velocity.x;
         const ay = this.velocity.y;
         const bx = player.mesh.position.x - this.mesh.position.x;
-        const by = player.mesh.position.y - this.mesh.position.y;
+        const by = player.mesh.position.x - this.mesh.position.y;
         let angle = Math.acos((ax*bx+ay*by)/(Math.sqrt(ax**2+ay**2)*Math.sqrt(bx**2+by**2)));
         const x = player.mesh.position.x;
         const y = player.mesh.position.y;    
@@ -777,30 +777,15 @@ class EnemyShip extends Ship
        // console.log("angle: " +angle);
         if (this.isInRange)
         {   
-           
-            if ((angle <0.6 || angle >2.0))
+            if (angle <0.6 && nextD<=currentD)
             {
                 this.isShootMid = true;
             }
-            
-            if (angle>Math.PI/2+0.06)
+
+            if (angle<Math.PI/2-0.02 || angle>Math.PI/2+0.02)
             {
                 this.accelerate = false;
-                if (p<0)
-                {
-                    this.turnRight = true;
-                    this.turnLeft = false;
-                }
-                else
-                {
-                    this.turnLeft = true;
-                    this.turnRight = false;
-                }
-            }
-            else if (angle<Math.PI/2)
-            {
-                this.accelerate = false;
-             
+                
                 if (p>0)
                 {
                 this.turnRight = true;
@@ -821,7 +806,7 @@ class EnemyShip extends Ship
             
         }
         else
-        if (angle>0.1 || nextD>=currentD)
+        if (angle>0.1 || nextD>currentD)
         {
             if (angle<0.6)
             {
@@ -880,8 +865,8 @@ const cameraHeight = cameraWidth/ aspectRatio;
 
 const offsetY = -210;
 
-camera.position.set(0, offsetY, 700);
-//camera.up.set(0, 0, 1);
+camera.position.set(0, offsetY, 150);
+camera.up.set(0, 0, 1);
 camera.lookAt(0, 0, 0);
 
 
@@ -1135,8 +1120,17 @@ function animation(timestamp)
    
     PlayerAnimation(timeDelta);
    
-    camera.position.x = player.mesh.position.x;
-	camera.position.y = player.mesh.position.y + offsetY;
+    //camera.position.x = player.mesh.position.x;
+	//camera.position.y = player.mesh.position.y;
+    if (!player.isHeadCollision)
+    {
+        //camera.up.set(0, 0, 1);
+
+        camera.position.x = player.mesh.position.x - 200*Math.cos(-player.angle);
+        camera.position.y = player.mesh.position.y - 200*Math.sin(-player.angle);
+        camera.lookAt(player.mesh.position.x, player.mesh.position.y, player.mesh.position.z);
+    }
+   
     EnemyAnimation(timeDelta);
     CheckColliderPlayerCannon();
     CheckColliderEnemyCannon();
@@ -2665,45 +2659,6 @@ function Ship1(){
     return ship;
 }
 
-function createIsland(){
-    const island = new THREE.Group();
-    const colorArr = ["darkolivegreen", "olivedrab"]
-    for (let i = 0; i< 80; i++){
-        let ismoutain = Math.floor(Math.random()*2);
-        let h = Math.floor(Math.random()*60)+10;
-        const plane = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(100, h, 2),
-            new THREE.MeshLambertMaterial({color: 0xF5DEB3})
-        );
-        plane.position.x = Math.floor(Math.random()*100);
-        plane.position.y = Math.floor(Math.random()*100);
-        island.add(plane);
-        if (ismoutain == 1){
-            let mZ = 2;
-            let mW = 80;
-            let mH = h;
-            let moutainColor = colorArr[Math.floor(Math.random()*colorArr.length)];
-            for (let j = 0; j<6; j++){
-                if (mH<0 || mW <0)
-                {
-                    break;
-                }
-                const moutain = new THREE.Mesh(
-                    new THREE.BoxBufferGeometry(mW, mH, 2),
-                    new THREE.MeshLambertMaterial({color: moutainColor})
-                );
-                moutain.position.z = mZ;
-                moutain.position.x = plane.position.x;
-                moutain.position.y = plane.position.y;
-                mZ += 2;
-                mW -= 15;
-                mH -= 10;
-                island.add(moutain);
-            }
-        }
-    }
-    return island;
-}
 
 function pickRandom(array)
 {
@@ -2951,6 +2906,8 @@ function Mesh1(centerX, centerY, iX, iY)
 
     isLandMesh.rotation.z = randomR(0, 2*Math.PI);
 
+    const minAngle = 0;
+    const maxAngle = 2*Math.PI;
 
     const c1 = new Collision(0, tC1, 75, 0, 0);
 
