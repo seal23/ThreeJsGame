@@ -36,13 +36,9 @@ class CannonBall
     {   
         this.mesh.position.x += this.velocity.x*timeDelta;
         this.mesh.position.y += this.velocity.y*timeDelta;
-      //  console.log("cannontimer: " + this.cannonTimer);
         this.cannonTimer = this.cannonTimer-timeDelta;
         
-       // console.log("cannontimer: " + this.cannonTimer);
-
         if (this.cannonTimer < 0) {
-            //this.isShootMid = false;
             scene.remove(this.mesh);
             return 0;
         }
@@ -1065,6 +1061,18 @@ function explosionSound()
     });
 }
 
+function hitSound()
+{
+    const sound = new THREE.Audio( listener );
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load( 'Hit.wav', function( buffer ) {
+        sound.setBuffer( buffer );
+        sound.setLoop( false );
+        sound.setVolume( 0.2 );
+        sound.play();
+    });
+}
+
 function reset()
 {
   
@@ -1292,6 +1300,7 @@ function CheckColliderPlayerCannon()
                 isHit = true;
             if (isHit)
             {
+                hitSound();
                 console.log("hit enemy");
                 enemyShip[j].hp -= player.atk;
                 console.log("hp: " + enemyShip[j].hp);
@@ -1339,6 +1348,7 @@ function CheckColliderEnemyCannon()
             isHit = true;
         if (isHit)
         {
+            hitSound();
             console.log("hit player");
             player.hp -= 1;
             console.log("hp: " + player.hp);

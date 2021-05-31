@@ -36,13 +36,9 @@ class CannonBall
     {   
         this.mesh.position.x += this.velocity.x*timeDelta;
         this.mesh.position.y += this.velocity.y*timeDelta;
-      //  console.log("cannontimer: " + this.cannonTimer);
         this.cannonTimer = this.cannonTimer-timeDelta;
         
-       // console.log("cannontimer: " + this.cannonTimer);
-
         if (this.cannonTimer < 0) {
-            //this.isShootMid = false;
             scene.remove(this.mesh);
             return 0;
         }
@@ -758,7 +754,7 @@ class EnemyShip extends Ship
         const ax = this.velocity.x;
         const ay = this.velocity.y;
         const bx = player.mesh.position.x - this.mesh.position.x;
-        const by = player.mesh.position.x - this.mesh.position.y;
+        const by = player.mesh.position.y - this.mesh.position.y;
         let angle = Math.acos((ax*bx+ay*by)/(Math.sqrt(ax**2+ay**2)*Math.sqrt(bx**2+by**2)));
         const x = player.mesh.position.x;
         const y = player.mesh.position.y;    
@@ -777,15 +773,30 @@ class EnemyShip extends Ship
        // console.log("angle: " +angle);
         if (this.isInRange)
         {   
-            if (angle <0.6 && nextD<=currentD)
+           
+            if ((angle <0.6 || angle >2.0))
             {
                 this.isShootMid = true;
             }
-
-            if (angle<Math.PI/2-0.02 || angle>Math.PI/2+0.02)
+            
+            if (angle>Math.PI/2+0.06)
             {
                 this.accelerate = false;
-                
+                if (p<0)
+                {
+                    this.turnRight = true;
+                    this.turnLeft = false;
+                }
+                else
+                {
+                    this.turnLeft = true;
+                    this.turnRight = false;
+                }
+            }
+            else if (angle<Math.PI/2)
+            {
+                this.accelerate = false;
+             
                 if (p>0)
                 {
                 this.turnRight = true;
@@ -806,7 +817,7 @@ class EnemyShip extends Ship
             
         }
         else
-        if (angle>0.1 || nextD>currentD)
+        if (angle>0.1 || nextD>=currentD)
         {
             if (angle<0.6)
             {
@@ -1050,6 +1061,18 @@ function explosionSound()
     });
 }
 
+function hitSound()
+{
+    const sound = new THREE.Audio( listener );
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load( 'Hit.wav', function( buffer ) {
+        sound.setBuffer( buffer );
+        sound.setLoop( false );
+        sound.setVolume( 0.2 );
+        sound.play();
+    });
+}
+
 function reset()
 {
   
@@ -1277,6 +1300,7 @@ function CheckColliderPlayerCannon()
                 isHit = true;
             if (isHit)
             {
+                hitSound();
                 console.log("hit enemy");
                 enemyShip[j].hp -= player.atk;
                 console.log("hp: " + enemyShip[j].hp);
@@ -1324,6 +1348,7 @@ function CheckColliderEnemyCannon()
             isHit = true;
         if (isHit)
         {
+            hitSound();
             console.log("hit player");
             player.hp -= 1;
             console.log("hp: " + player.hp);
@@ -2650,6 +2675,45 @@ function Ship1(){
     return ship;
 }
 
+function createIsland(){
+    const island = new THREE.Group();
+    const colorArr = ["darkolivegreen", "olivedrab"]
+    for (let i = 0; i< 80; i++){
+        let ismoutain = Math.floor(Math.random()*2);
+        let h = Math.floor(Math.random()*60)+10;
+        const plane = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(100, h, 2),
+            new THREE.MeshLambertMaterial({color: 0xF5DEB3})
+        );
+        plane.position.x = Math.floor(Math.random()*100);
+        plane.position.y = Math.floor(Math.random()*100);
+        island.add(plane);
+        if (ismoutain == 1){
+            let mZ = 2;
+            let mW = 80;
+            let mH = h;
+            let moutainColor = colorArr[Math.floor(Math.random()*colorArr.length)];
+            for (let j = 0; j<6; j++){
+                if (mH<0 || mW <0)
+                {
+                    break;
+                }
+                const moutain = new THREE.Mesh(
+                    new THREE.BoxBufferGeometry(mW, mH, 2),
+                    new THREE.MeshLambertMaterial({color: moutainColor})
+                );
+                moutain.position.z = mZ;
+                moutain.position.x = plane.position.x;
+                moutain.position.y = plane.position.y;
+                mZ += 2;
+                mW -= 15;
+                mH -= 10;
+                island.add(moutain);
+            }
+        }
+    }
+    return island;
+}
 
 function pickRandom(array)
 {
@@ -2897,8 +2961,6 @@ function Mesh1(centerX, centerY, iX, iY)
 
     isLandMesh.rotation.z = randomR(0, 2*Math.PI);
 
-    const minAngle = 0;
-    const maxAngle = 2*Math.PI;
 
     const c1 = new Collision(0, tC1, 75, 0, 0);
 
