@@ -1,7 +1,7 @@
 import * as THREE from './node_modules/three/build/three.module.js';
 const scene = new THREE.Scene();
 scene.background = new THREE.Color( 0xf0f0f0 );
-const playerShip = Ship_3();
+const playerShip = Ship_4();
 scene.add(playerShip);
 
 //Set up light
@@ -1030,6 +1030,46 @@ function Ship_3(){
     ship.add(rightRailing);
     return ship;
 };
+
+function Ship_4(){
+    const island = new THREE.Group();
+    const colorArr = ["darkolivegreen", "olivedrab"]
+    for (let i = 0; i< 80; i++){
+        let ismoutain = Math.floor(Math.random()*2);
+        let h = Math.floor(Math.random()*60)+10;
+        const main = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(100, h, 2),
+            new THREE.MeshLambertMaterial({color: 0xF5DEB3})
+        );
+        main.position.x = Math.floor(Math.random()*100);
+        main.position.y = Math.floor(Math.random()*100);
+        island.add(main);
+        if (ismoutain == 1){
+            let mZ = 2;
+            let mW = 80;
+            let mH = h;
+            let moutainColor = colorArr[Math.floor(Math.random()*colorArr.length)];
+            for (let j = 0; j<6; j++){
+                if (mH<0 || mW <0)
+                {
+                    break;
+                }
+                const moutain = new THREE.Mesh(
+                    new THREE.BoxBufferGeometry(mW, mH, 2),
+                    new THREE.MeshLambertMaterial({color: moutainColor})
+                );
+                moutain.position.z = mZ;
+                moutain.position.x = main.position.x;
+                moutain.position.y = main.position.y;
+                mZ += 2;
+                mW -= 15;
+                mH -= 10;
+                island.add(moutain);
+            }
+        }
+    }
+    return island;
+}
 function pickRandom(array){
     return array[Math.floor(Math.random() * array.length)];
 }

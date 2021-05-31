@@ -2650,6 +2650,45 @@ function Ship1(){
     return ship;
 }
 
+function createIsland(){
+    const island = new THREE.Group();
+    const colorArr = ["darkolivegreen", "olivedrab"]
+    for (let i = 0; i< 80; i++){
+        let ismoutain = Math.floor(Math.random()*2);
+        let h = Math.floor(Math.random()*60)+10;
+        const plane = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(100, h, 2),
+            new THREE.MeshLambertMaterial({color: 0xF5DEB3})
+        );
+        plane.position.x = Math.floor(Math.random()*100);
+        plane.position.y = Math.floor(Math.random()*100);
+        island.add(plane);
+        if (ismoutain == 1){
+            let mZ = 2;
+            let mW = 80;
+            let mH = h;
+            let moutainColor = colorArr[Math.floor(Math.random()*colorArr.length)];
+            for (let j = 0; j<6; j++){
+                if (mH<0 || mW <0)
+                {
+                    break;
+                }
+                const moutain = new THREE.Mesh(
+                    new THREE.BoxBufferGeometry(mW, mH, 2),
+                    new THREE.MeshLambertMaterial({color: moutainColor})
+                );
+                moutain.position.z = mZ;
+                moutain.position.x = plane.position.x;
+                moutain.position.y = plane.position.y;
+                mZ += 2;
+                mW -= 15;
+                mH -= 10;
+                island.add(moutain);
+            }
+        }
+    }
+    return island;
+}
 
 function pickRandom(array)
 {
