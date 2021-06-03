@@ -36,6 +36,7 @@ class CannonBall
     {   
         this.mesh.position.x += this.velocity.x*timeDelta;
         this.mesh.position.y += this.velocity.y*timeDelta;
+        
         this.cannonTimer = this.cannonTimer-timeDelta;
         
         if (this.cannonTimer < 0) {
@@ -866,6 +867,7 @@ const camera = new THREE.PerspectiveCamera(
 	2000 // far plane
 );
 
+//Audio Listener
 const listener = new THREE.AudioListener();
 camera.add( listener );
 
@@ -885,8 +887,8 @@ camera.lookAt(0, 0, 0);
 let exp = 0;
 let score = 0;
 let enemyShip = [];
-let playerCannonBall = [];
-let enemyCannonBall = [];
+let playerCannonBall = []; 
+let enemyCannonBall = []; 
 
 let player = CreateShip1(true, 0, 0);
 
@@ -918,7 +920,7 @@ const arcCenterX = (Math.cos(arcAngle1)* innerTrackRadius + Math.cos(arcAngle2)*
 
 //const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
-let map = [];
+let map = []; // 
 const tileMapSize = 1200; // TilesMapSize
 
 const neighborTilesX = [tileMapSize, tileMapSize, tileMapSize, 0, 0, -tileMapSize, -tileMapSize, -tileMapSize];
@@ -3143,8 +3145,6 @@ function UpdateMap(size)
         thisJ = j;
 	}
 
-    
-	
 }
 
 
