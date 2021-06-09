@@ -36,7 +36,6 @@ class CannonBall
     {   
         this.mesh.position.x += this.velocity.x*timeDelta;
         this.mesh.position.y += this.velocity.y*timeDelta;
-        
         this.cannonTimer = this.cannonTimer-timeDelta;
         
         if (this.cannonTimer < 0) {
@@ -867,7 +866,6 @@ const camera = new THREE.PerspectiveCamera(
 	2000 // far plane
 );
 
-//Audio Listener
 const listener = new THREE.AudioListener();
 camera.add( listener );
 
@@ -887,8 +885,8 @@ camera.lookAt(0, 0, 0);
 let exp = 0;
 let score = 0;
 let enemyShip = [];
-let playerCannonBall = []; 
-let enemyCannonBall = []; 
+let playerCannonBall = [];
+let enemyCannonBall = [];
 
 let player = CreateShip1(true, 0, 0);
 
@@ -920,8 +918,8 @@ const arcCenterX = (Math.cos(arcAngle1)* innerTrackRadius + Math.cos(arcAngle2)*
 
 //const arcAngle4 = Math.acos(arcCenterX / outerTrackRadius);
 
-let map = []; // 
-const tileMapSize = 1200; // TilesMapSize
+let map = [];
+const tileMapSize = 1500; // TilesMapSize
 
 const neighborTilesX = [tileMapSize, tileMapSize, tileMapSize, 0, 0, -tileMapSize, -tileMapSize, -tileMapSize];
 const neighborTilesY = [tileMapSize, 0, -tileMapSize, tileMapSize, -tileMapSize, tileMapSize, 0, -tileMapSize];
@@ -2677,43 +2675,176 @@ function Ship1(){
     return ship;
 }
 
-function createIsland(){
-    const island = new THREE.Group();
-    const colorArr = ["darkolivegreen", "olivedrab"]
-    for (let i = 0; i< 80; i++){
-        let ismoutain = Math.floor(Math.random()*2);
-        let h = Math.floor(Math.random()*60)+10;
-        const plane = new THREE.Mesh(
-            new THREE.BoxBufferGeometry(100, h, 2),
-            new THREE.MeshLambertMaterial({color: 0xF5DEB3})
+function createPlane( w, h, x, y){
+    const plane = new THREE.Mesh(
+        new THREE.BoxBufferGeometry(w, h, 2),
+        new THREE.MeshLambertMaterial({color: 0xF5DEB3})
+    );
+    plane.position.x = x;
+    plane.position.y = y;
+    return plane;
+}
+
+function createMount( w, h, x, y, mH){
+    const mountain = new THREE.Group();
+    let mountZ = 2;
+    for (let i = 0; i<mH; i++){
+        const mount = new THREE.Mesh(
+            new THREE.BoxBufferGeometry(w, h, 2),
+            new THREE.MeshLambertMaterial({color: 0x008000})
         );
-        plane.position.x = Math.floor(Math.random()*100);
-        plane.position.y = Math.floor(Math.random()*100);
-        island.add(plane);
-        if (ismoutain == 1){
-            let mZ = 2;
-            let mW = 80;
-            let mH = h;
-            let moutainColor = colorArr[Math.floor(Math.random()*colorArr.length)];
-            for (let j = 0; j<6; j++){
-                if (mH<0 || mW <0)
-                {
-                    break;
-                }
-                const moutain = new THREE.Mesh(
-                    new THREE.BoxBufferGeometry(mW, mH, 2),
-                    new THREE.MeshLambertMaterial({color: moutainColor})
-                );
-                moutain.position.z = mZ;
-                moutain.position.x = plane.position.x;
-                moutain.position.y = plane.position.y;
-                mZ += 2;
-                mW -= 15;
-                mH -= 10;
-                island.add(moutain);
-            }
-        }
+        mount.position.z = mountZ;
+        mount.position.x = x;
+        mount.position.y = y;
+        mountain.add(mount);
+        w -= 10;
+        h -= 10;
+        mountZ +=2;
     }
+    return mountain;
+}
+
+function createMountHeight( x, y, z, rT, rB, h, seg){
+    const mountain = new THREE.Mesh(
+        new THREE.CylinderGeometry( rT, rB, h, seg ),
+        new THREE.MeshBasicMaterial( {color: 0x006400} )
+    );
+    mountain.rotateX(-Math.PI /2);
+    mountain.position.x = x;
+    mountain.position.y = y;
+    mountain.position.z = z;
+    return mountain;
+}
+
+function createIsland1(){
+    const island = new THREE.Group();
+    const plane = [];
+    const mountain = [];
+    const mountheight = [];
+    const plane0 = createPlane(300, 280, 0, 0);
+    plane.push(plane0);
+    const plane1 = createPlane(300, 290, 10, -20);
+    plane.push(plane1);
+    const plane2 = createPlane(280, 250, 25, -10);
+    plane.push(plane2);
+    const plane3 = createPlane(280, 240, 20, 40);
+    plane.push(plane3);
+    const plane4 = createPlane(250, 250, 10, 25);
+    plane.push(plane4);
+    const plane5 = createPlane(290, 290, 10, -40);
+    plane.push(plane5);
+    const plane6 = createPlane(270, 260, -20, -10);
+    plane.push(plane6);
+    const plane7 = createPlane(250, 280, 10, -80);
+    plane.push(plane7);
+    const plane8 = createPlane(265, 290, 10, -60);
+    plane.push(plane8);
+    const plane9 = createPlane(245, 250, -50, -5);
+    plane.push(plane9);
+    const plane10 = createPlane(245, 250, 20, 50);
+    plane.push(plane10);
+
+    const mount0 = createMount(250, 240, -10, -40, 10);
+    mountain.push(mount0);
+    const mount1 = createMount(270, 260, 5, -20, 2);
+    mountain.push(mount1);
+    const mount2 = createMount(280, 250, 10, -30, 4);
+    mountain.push(mount2);
+    const mount3 = createMount(240, 280, 20, 20, 6);
+    mountain.push(mount3);
+    const mount4 = createMount(260, 160, -10, 5, 6);
+    mountain.push(mount4);
+    const mount5 = createMount(250, 260, 10, -50, 5);
+    mountain.push(mount5);
+
+    const mountH0 = createMountHeight(20, 10, 36, 16, 8 , 32, 10);
+    mountheight.push(mountH0);
+    const mountH1 = createMountHeight(-20, -30, 25, 22, 13, 10, 8);
+    mountheight.push(mountH1);
+    const mountH2 = createMountHeight(-50, -50, 40, 30, 8, 40, 8);
+    mountheight.push(mountH2);
+    const mountH3 = createMountHeight(30, -50, 40, 30, 8, 40, 8);
+    mountheight.push(mountH3);
+    const mountH4 = createMountHeight(80, 80, 30, 30, 8, 40, 8);
+    mountheight.push(mountH4);
+    const mountH5 = createMountHeight(-40, 60, 30, 30, 8, 40, 8);
+    mountheight.push(mountH5);
+    for (let i =0 ; i<plane.length;i++){
+        island.add(plane[i]);
+    }
+    for (let j=0 ; j<mountain.length;j++){
+        island.add(mountain[j]);
+    }
+    for (let k=0 ; k<mountain.length;k++){
+        island.add(mountheight[k]);
+    }
+
+
+    return island;
+}
+
+function createIsland2(){
+    const island = new THREE.Group();
+    const plane = [];
+    const mountain = [];
+    const mountheight = [];
+    const plane0 = createPlane(300, 280, 0, 0);
+    plane.push(plane0);
+    const plane1 = createPlane(300, 280, 180, -100);
+    plane.push(plane1);
+    const plane2 = createPlane(300, 280, -180, -100);
+    plane.push(plane2);
+    const plane3 = createPlane(250, 250, 300, -200);
+    plane.push(plane3);
+    const plane4 = createPlane(250, 250, -300, -200);
+    plane.push(plane4);
+    const plane5 = createPlane(250, 250, -230, -150);
+    plane.push(plane5);
+    const plane6 = createPlane(250, 250, 230, -150);
+    plane.push(plane6);
+    const plane7 = createPlane(150, 150, 300, -350);
+    plane.push(plane7);
+    const plane8 = createPlane(150, 150, -300, -350);
+    plane.push(plane8);
+
+    const mount0 = createMount(250, 250, 0, 0, 10);
+    mountain.push(mount0);
+    const mount1 = createMount(230, 250, 180, -100, 8);
+    mountain.push(mount1);
+    const mount2 = createMount(200, 200, 300, -200, 6);
+    mountain.push(mount2);
+    const mount3 = createMount(100, 150, 300, -320, 6);
+    mountain.push(mount3);
+    const mount4 = createMount(230, 250, -180, -100, 8);
+    mountain.push(mount4);
+    const mount5 = createMount(200, 200, -300, -200, 6);
+    mountain.push(mount5);
+    const mount6 = createMount(100, 150, -300, -320, 6);
+    mountain.push(mount6);
+
+    const mountH0 = createMountHeight(0, 0, 50, 80, 50 , 70, 10);
+    mountheight.push(mountH0);
+    const mountH1 = createMountHeight(200, -80, 55, 60, 40, 80, 10);
+    mountheight.push(mountH1);
+    const mountH2 = createMountHeight(150, -130, 30, 60, 40, 30, 10);
+    mountheight.push(mountH2);
+    const mountH3 = createMountHeight(330, -200, 30, 30, 8, 40, 10);
+    mountheight.push(mountH3);
+    const mountH4 = createMountHeight(-200, -100, 55, 60, 40, 80, 10);
+    mountheight.push(mountH4);
+    const mountH5 = createMountHeight(-300, -200, 28, 60, 40, 30, 10);
+    mountheight.push(mountH5);
+    for (let i =0 ; i<plane.length;i++){
+        island.add(plane[i]);
+    }
+    for (let j=0 ; j<mountain.length;j++){
+        island.add(mountain[j]);
+    }
+    for (let k=0 ; k<mountain.length;k++){
+        island.add(mountheight[k]);
+    }
+
+
     return island;
 }
 
@@ -2787,16 +2918,6 @@ function getSeaMarkings(mapWidth, mapHeight)
 	return new THREE.CanvasTexture(canvas);
 }
 
-  
-function renderMap(mapWidth, mapHeight) 
-{
-    const minimumRange = 1;
-    const maximumRange = 100;
- 
-    addRandomMap(0, 0, minimumRange, maximumRange, 0);
-	generator[500][500] = 1;
-
-}  
 
 function addRandomMap(centerX, centerY, minimumRange, maximumRange, mType =1)
 {
@@ -2906,7 +3027,7 @@ function addMap(centerX, centerY, iX, iY, mType = 1)
 {
     let mesh;
 	let collider;
-	const meshTypes = ["mesh0", "mesh1"];
+	const meshTypes = ["mesh0", "mesh1","mesh2"];
 	let type = pickRandom(meshTypes);
 	if (mType == 0 )
 		type = "mesh0";
@@ -2919,6 +3040,12 @@ function addMap(centerX, centerY, iX, iY, mType = 1)
 	else if (type == "mesh1")
     {
        const val = Mesh1(centerX, centerY, iX, iY);
+        mesh = val.mesh;
+        collider = val.collider;
+    }
+    else if (type == "mesh2")
+    {
+       const val = Mesh2(centerX, centerY, iX, iY);
         mesh = val.mesh;
         collider = val.collider;
     }
@@ -2941,34 +3068,67 @@ function Mesh1(centerX, centerY, iX, iY)
     let collider = [];
     mesh = Sea0(centerX, centerY, iX, iY);
         
-    const isLand1 = getIsLand1(iX, iY);
-    const isLandGeometry = new THREE.ExtrudeBufferGeometry(
-    [isLand1],
-    {depth: 4, bevelEnable: false}
 
-    );
+    let isLandMesh = createIsland1();
     
-    const isLandMesh = new THREE.Mesh(isLandGeometry, [
-        new THREE.MeshLambertMaterial({ color: 0x67c240}),
-        new THREE.MeshLambertMaterial({ color: 0x23311c})
-    ]);
+   
+    let tC1 = createCollision(0, -5, 30, 200, 32);
 
-    const tC1 = createCollision(iX - 45, iY, 20, 75, 32);
-    const tC2 = createCollision(iX - 55, iY + 100, 20, 53, 32);
-    const tC3 = createCollision(iX - 55, iY - 100, 20, 53, 32);
+
+    isLandMesh.add(tC1);
+
+    isLandMesh.position.x = iX;
+    isLandMesh.position.y = iY;
+    isLandMesh.rotation.z = randomR(0, 2*Math.PI);
+
+
+    const c1 = new Collision(0, tC1, 200, 0, 0);
+
+
+    mesh.add(isLandMesh);
+
+    mesh.position.x = centerX;
+    mesh.position.y = centerY;
+
+    collider.push(c1);
+
+    return {
+        mesh: mesh, 
+        collider: collider
+    };
+}
+
+function Mesh2(centerX, centerY, iX, iY)
+{
+    let mesh;
+    let collider = [];
+    mesh = Sea0(centerX, centerY, iX, iY);
+        
+ 
+    let isLandMesh = createIsland2();
+    
+
+    const tC1 = createCollision(0, 0, 20, 145, 32);
+    const tC2 = createCollision(- 200, - 120, 20, 155, 32);
+    const tC3 = createCollision(200, - 120, 20, 155, 32);
+    const tC4 = createCollision(- 275, - 245, 20, 150, 32);
+    const tC5 = createCollision(275, - 245, 20, 150, 32);
 
     isLandMesh.add(tC1);
     isLandMesh.add(tC2);
     isLandMesh.add(tC3);
-
+    isLandMesh.add(tC4);
+    isLandMesh.add(tC5);
+    isLandMesh.position.x = iX;
+    isLandMesh.position.y = iY;
     isLandMesh.rotation.z = randomR(0, 2*Math.PI);
 
 
-    const c1 = new Collision(0, tC1, 75, 0, 0);
-
-    const c2 = new Collision(0, tC2, 53, 0, 0);
-    
-    const c3 = new Collision(0, tC3, 53, 0, 0);
+    const c1 = new Collision(0, tC1, 145, 0, 0);
+    const c2 = new Collision(0, tC2, 155, 0, 0);
+    const c3 = new Collision(0, tC3, 155, 0, 0);
+    const c4 = new Collision(0, tC4, 150, 0, 0);
+    const c5 = new Collision(0, tC5, 150, 0, 0);
 
     mesh.add(isLandMesh);
 
@@ -2978,6 +3138,8 @@ function Mesh1(centerX, centerY, iX, iY)
     collider.push(c1);
     collider.push(c2);
     collider.push(c3);
+    collider.push(c4);
+    collider.push(c5);
     return {
         mesh: mesh, 
         collider: collider
@@ -3143,8 +3305,7 @@ function UpdateMap(size)
         preJ = thisJ;
         thisI = i;
         thisJ = j;
-	}
-
+	}	
 }
 
 
